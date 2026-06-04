@@ -11,6 +11,14 @@ let appState = {
 };
 
 // Default Agreement Template (Markdown)
+// Frozen Headers for data parsing support when user pastes data without header row
+const FROZEN_HEADERS = [
+  "S.NO", "Laptop Model", "Serial Number", "PC Name", "User Name",
+  "AD ID", "Employee ID", "Dept", "Manager", "Directors",
+  "H/O Date", "Headset", "Docking", "Mouse"
+];
+
+// Default Agreement Template (Markdown)
 const DEFAULT_TEMPLATE = `<div style="text-align: center; margin-bottom: 1.25rem;">
   <img src="ups_logo.svg" alt="UPS Logo" style="height: 58px; width: auto; margin-bottom: 0.25rem; display: block; margin-left: auto; margin-right: auto;">
   <h2 style="margin: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #111;">RECEIPT FOR COMPANY PROPERTY</h2>
@@ -20,11 +28,15 @@ const DEFAULT_TEMPLATE = `<div style="text-align: center; margin-bottom: 1.25rem
 <table style="width: 100%; border: none; margin-bottom: 1rem; font-size: 0.82rem; border-collapse: collapse;">
   <tr style="border: none;">
     <td style="width: 60%; border: none; padding: 4px 0; color: #000;"><strong>Employee Name:</strong> {{User_Name}}</td>
-    <td style="width: 40%; border: none; padding: 4px 0; color: #000;"><strong>Employee Number:</strong> {{Employee_ID}}</td>
+    <td style="width: 40%; border: none; padding: 4px 0; color: #000;"><strong>Employee ID:</strong> {{Employee_ID}}</td>
   </tr>
   <tr style="border: none;">
-    <td style="width: 60%; border: none; padding: 4px 0; color: #000;"><strong>Department:</strong> {{Dept}}</td>
-    <td style="width: 40%; border: none; padding: 4px 0; color: #000;">&nbsp;</td>
+    <td style="width: 60%; border: none; padding: 4px 0; color: #000;"><strong>AD ID:</strong> {{AD_ID}}</td>
+    <td style="width: 40%; border: none; padding: 4px 0; color: #000;"><strong>Department:</strong> {{Dept}}</td>
+  </tr>
+  <tr style="border: none;">
+    <td style="width: 60%; border: none; padding: 4px 0; color: #000;"><strong>Manager:</strong> {{Manager}}</td>
+    <td style="width: 40%; border: none; padding: 4px 0; color: #000;"><strong>Director / HOD:</strong> {{Directors}}</td>
   </tr>
 </table>
 
@@ -183,6 +195,14 @@ const DEFAULT_TEMPLATE = `<div style="text-align: center; margin-bottom: 1.25rem
       <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
       <td style="border: 1px solid #444; padding: 4px 6px;"></td>
     </tr>
+    <tr>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">5</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">Docking</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">{{Docking}}</td>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;"></td>
+    </tr>
     <!-- Software Section -->
     <tr style="background-color: #eee; font-weight: 700;">
       <td colspan="6" style="border: 1px solid #444; padding: 3px 6px;">Software</td>
@@ -211,13 +231,10 @@ const SAMPLE_DATA = [
     "Dept": "Product Engineering",
     "Manager": "Richard Hendricks",
     "Directors": "Jared Dunn",
-    "H/O Date": "June 15, 2026",
+    "H/O Date": "15/06/2026",
     "Headset": "Jabra Evolve2 65",
     "Docking": "Dell USB-C Dual Dock",
-    "Mouse": "Logitech MX Master 3S",
-    "Keyboard": "Logitech MX Keys S",
-    "Deskphone": "Cisco 8841",
-    "Monitor for WFH": "Dell 27\" U2723QE"
+    "Mouse": "Logitech MX Master 3S"
   },
   {
     "S.NO": "2",
@@ -230,13 +247,10 @@ const SAMPLE_DATA = [
     "Dept": "Customer Operations",
     "Manager": "Erlich Bachman",
     "Directors": "Laurie Bream",
-    "H/O Date": "June 12, 2026",
+    "H/O Date": "12/06/2026",
     "Headset": "Logitech H390",
     "Docking": "Caldigit TS4 Thunderbolt Dock",
-    "Mouse": "Apple Magic Mouse",
-    "Keyboard": "Apple Magic Keyboard",
-    "Deskphone": "None",
-    "Monitor for WFH": "LG UltraFine 5K"
+    "Mouse": "Apple Magic Mouse"
   }
 ];
 
@@ -573,15 +587,28 @@ function parsePastedTSV() {
       throw new Error("No readable text found.");
     }
     
-    // Parse header row
-    const headers = lines[0].split('\t').map(h => h.trim()).filter(h => h !== '');
-    if (headers.length === 0) {
-      throw new Error("Could not detect any headers in the pasted text.");
+    const firstLineCells = lines[0].split('\t').map(h => h.trim());
+    
+    // Detect if first line contains header keywords vs data
+    const hasHeaderRow = firstLineCells.some(cell => {
+      const lower = cell.toLowerCase();
+      return lower.includes('s.no') || lower.includes('laptop') || lower.includes('serial') || lower.includes('user name') || lower.includes('employee') || lower.includes('pc name') || lower.includes('ad id');
+    });
+    
+    let headers = [];
+    let startLineIndex = 1;
+    
+    if (hasHeaderRow) {
+      headers = firstLineCells.filter(h => h !== '');
+      startLineIndex = 1;
+    } else {
+      headers = [...FROZEN_HEADERS];
+      startLineIndex = 0;
     }
     
     // Parse data rows
     const rows = [];
-    for (let i = 1; i < lines.length; i++) {
+    for (let i = startLineIndex; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
       
@@ -637,10 +664,27 @@ function processExcelFile(file) {
         throw new Error("The worksheet contains no text rows.");
       }
       
-      const headers = nonEmptyRows[0].map(h => String(h).trim()).filter(h => h !== '');
-      const rows = [];
+      const firstRowCells = nonEmptyRows[0].map(h => String(h).trim());
       
-      for (let i = 1; i < nonEmptyRows.length; i++) {
+      // Detect if first row contains header keywords vs data
+      const hasHeaderRow = firstRowCells.some(cell => {
+        const lower = cell.toLowerCase();
+        return lower.includes('s.no') || lower.includes('laptop') || lower.includes('serial') || lower.includes('user name') || lower.includes('employee') || lower.includes('pc name') || lower.includes('ad id');
+      });
+      
+      let headers = [];
+      let startRowIndex = 1;
+      
+      if (hasHeaderRow) {
+        headers = firstRowCells.filter(h => h !== '');
+        startRowIndex = 1;
+      } else {
+        headers = [...FROZEN_HEADERS];
+        startRowIndex = 0;
+      }
+      
+      const rows = [];
+      for (let i = startRowIndex; i < nonEmptyRows.length; i++) {
         const rowData = nonEmptyRows[i];
         const rowObj = {};
         let rowHasData = false;
