@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Asset Agreement Automator</title>
+  <meta name="description" content="Generate and fill customized IT Asset Agreements in bulk from Excel, CSV, or copied text with live preview and smart PDF printing.">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS is not requested; using Custom Vanilla CSS -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- CDNs for helper libraries -->
+  <!-- SheetJS for Excel files -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- JSZip for bulk zip exports -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <!-- Marked for Markdown processing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Mammoth.js for DOCX files -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
+  <!-- PDF.js for PDF files -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+  <!-- Main App Grid -->
+  <div class="app-container" id="app">
+    <!-- Sidebar Controls -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">
+          <i data-lucide="cpu"></i>
+        </div>
+        <div class="brand-details">
+          <h1>AssetFill</h1>
+          <span>Smart IT Automation</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-tab="template-tab" id="btn-tab-template">
+          <i data-lucide="file-text"></i>
+          <span>1. Template</span>
+        </button>
+        <button class="nav-btn" data-tab="data-tab" id="btn-tab-data">
+          <i data-lucide="database"></i>
+          <span>2. Data Source</span>
+          <span class="badge" id="data-count-badge" style="display: none;">0</span>
+        </button>
+        <button class="nav-btn" data-tab="mapping-tab" id="btn-tab-mapping">
+          <i data-lucide="sliders"></i>
+          <span>3. Mapping</span>
+          <span class="badge warning" id="unmapped-badge" style="display: none;">!</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="theme-toggle">
+          <button id="dark-theme-btn" class="theme-btn active" title="Dark Mode">
+            <i data-lucide="moon"></i>
+          </button>
+          <button id="light-theme-btn" class="theme-btn" title="Light Mode">
+            <i data-lucide="sun"></i>
+          </button>
+        </div>
+        <p class="copyright">&copy; 2026 AssetFill Inc.</p>
+      </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="main-content">
+      <!-- Top header / status bar -->
+      <header class="top-bar">
+        <div class="header-info">
+          <h2 id="current-step-title">Agreement Template</h2>
+          <p id="current-step-subtitle">Draft your agreement and define custom placeholders</p>
+        </div>
+        <div class="quick-stats">
+          <div class="stat-item">
+            <span class="stat-label">Placeholders:</span>
+            <span class="stat-val" id="stat-placeholders-count">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Records:</span>
+            <span class="stat-val" id="stat-records-count">0</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Step Content Area -->
+      <div class="step-panels">
+        
+        <!-- Tab 1: Template Editor -->
+        <section id="template-tab" class="step-panel active">
+          <div class="panel-card">
+            <div class="card-header">
+              <h3>Template Editor (Markdown / Text)</h3>
+              <div class="card-actions">
+                <input type="file" id="template-file-input" accept=".docx,.pdf,.txt,.md" style="display: none;">
+                <button class="btn btn-secondary btn-sm" id="btn-upload-template" title="Import template from DOCX, PDF, TXT or Markdown file">
+                  <i data-lucide="upload"></i> Import Template (Docx/PDF)
+                </button>
+                <button class="btn btn-secondary btn-sm" id="btn-reset-template">
+                  <i data-lucide="rotate-ccw"></i> Reset to Default
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="template-instructions">
+                <p>Use double curly braces to declare placeholders (e.g. <code>{{Employee_Name}}</code> or <code>{{Serial_Number}}</code>). They will be auto-detected for column mapping.</p>
+              </div>
+              <div class="editor-container">
+                <textarea id="template-editor" spellcheck="false" placeholder="Enter your agreement template here..."></textarea>
+              </div>
+              <div class="detected-placeholders-container">
+                <h4>Detected Placeholders:</h4>
+                <div class="placeholder-tags" id="placeholder-tags-list">
+                  <!-- Generated dynamically -->
+                  <span class="empty-tag">No placeholders detected. Add some using {{name}} syntax.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tab 2: Data Source -->
+        <section id="data-tab" class="step-panel">
+          <div class="panel-card">
+            <div class="card-header">
+              <h3>Import Employee & Asset Data</h3>
+            </div>
+            <div class="card-body">
+              <!-- Upload grids -->
+              <div class="upload-grid">
+                <!-- File Dropzone -->
+                <div class="dropzone" id="excel-dropzone">
+                  <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" style="display: none;">
+                  <div class="dropzone-content">
+                    <div class="dropzone-icon">
+                      <i data-lucide="file-spreadsheet"></i>
+                    </div>
+                    <h4>Upload Excel or CSV file</h4>
+                    <p>Drag and drop your <code>.xlsx</code>, <code>.xls</code>, or <code>.csv</code> file here, or click to browse</p>
+                  </div>
+                </div>
+
+                <!-- Text Area for Copy-Paste -->
+                <div class="paste-zone">
+                  <div class="paste-header">
+                    <h4>Or Copy-Paste Direct from Excel</h4>
+                    <span class="tip">Copy cells from Excel (Ctrl+C) and paste below (Ctrl+V)</span>
+                  </div>
+                  <textarea id="paste-data-input" placeholder="Paste Excel/CSV/TSV tabular data here...&#10;Example:&#10;Employee_Name&#9;Asset_Model&#9;Serial_Number&#10;John Doe&#9;MacBook Pro 16&#9;C02FL48QMD6M"></textarea>
+                  <div class="paste-actions">
+                    <button class="btn btn-primary btn-sm" id="btn-parse-paste">
+                      <i data-lucide="check"></i> Parse Pasted Data
+                    </button>
+                    <button class="btn btn-secondary btn-sm" id="btn-load-sample-data">
+                      Load Sample Data
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Imported Data Preview Table -->
+              <div class="data-preview-section" id="data-preview-section" style="display: none;">
+                <div class="preview-header">
+                  <h3>Imported Data Preview (<span id="parsed-count-indicator">0</span> rows)</h3>
+                  <button class="btn btn-danger btn-sm" id="btn-clear-data">
+                    <i data-lucide="trash-2"></i> Clear Data
+                  </button>
+                </div>
+                <div class="table-container">
+                  <table id="data-table">
+                    <thead>
+                      <tr id="data-table-headers">
+                        <!-- Filled dynamically -->
+                      </tr>
+                    </thead>
+                    <tbody id="data-table-body">
+                      <!-- Filled dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tab 3: Mapping -->
+        <section id="mapping-tab" class="step-panel">
+          <div class="panel-card">
+            <div class="card-header">
+              <h3>Map Placeholders to Data Columns</h3>
+              <button class="btn btn-secondary btn-sm" id="btn-auto-map">
+                <i data-lucide="wand-2"></i> Auto Match Columns
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="mapping-instructions">
+                <p>Link each placeholder detected in your template to a header column from your uploaded data source.</p>
+              </div>
+              <div class="mapping-grid" id="mapping-fields-container">
+                <!-- Dynamically populated rows of Mapping Fields -->
+                <div class="empty-mapping">
+                  <i data-lucide="alert-circle"></i>
+                  <p>Please make sure you have both a template with <code>{{placeholders}}</code> and loaded data rows.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Right Side: Document Preview & Output Actions -->
+    <section class="preview-pane">
+      <div class="preview-header">
+        <div class="preview-title">
+          <i data-lucide="eye"></i>
+          <h3>Live Agreement Preview</h3>
+        </div>
+        <div class="pagination-controls" id="preview-pagination" style="display: none;">
+          <button class="btn-icon" id="btn-prev-preview" title="Previous Record">
+            <i data-lucide="chevron-left"></i>
+          </button>
+          <span class="page-indicator"><strong id="current-record-num">1</strong> of <span id="total-records-num">1</span></span>
+          <button class="btn-icon" id="btn-next-preview" title="Next Record">
+            <i data-lucide="chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Virtual Sheet -->
+      <div class="document-container">
+        <div class="document-sheet" id="agreement-preview-sheet">
+          <div class="empty-preview-msg">
+            <i data-lucide="file-text" class="large-icon"></i>
+            <h3>No Preview Generated Yet</h3>
+            <p>Load some data in Step 2 to generate live dynamic document previews here.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Panel for Exporting -->
+      <div class="action-footer">
+        <div class="action-group">
+          <h4>Current Agreement</h4>
+          <div class="btn-row">
+            <button class="btn btn-secondary" id="btn-print-current" disabled>
+              <i data-lucide="printer"></i> Print / PDF
+            </button>
+            <button class="btn btn-secondary" id="btn-download-md-current" disabled>
+              <i data-lucide="file-code"></i> Markdown
+            </button>
+          </div>
+        </div>
+        <div class="action-group">
+          <h4>Bulk Processing (<span id="bulk-count-indicator">0</span> documents)</h4>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="btn-print-all" disabled>
+              <i data-lucide="files"></i> Print All to PDF
+            </button>
+            <button class="btn btn-secondary" id="btn-zip-all" disabled>
+              <i data-lucide="archive"></i> Download All (.ZIP)
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Hidden Container for Printing all agreements in one go -->
+  <div id="print-all-container" class="print-only-container"></div>
+
+  <!-- System Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
