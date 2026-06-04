@@ -36,7 +36,7 @@ const DEFAULT_TEMPLATE = `<div style="text-align: center; margin-bottom: 1.25rem
   </tr>
   <tr style="border: none;">
     <td style="width: 60%; border: none; padding: 4px 0; color: #000;"><strong>Manager:</strong> {{Manager}}</td>
-    <td style="width: 40%; border: none; padding: 4px 0; color: #000;"><strong>Director / HOD:</strong> {{Directors}}</td>
+    <td style="width: 40%; border: none; padding: 4px 0; color: #000;">&nbsp;</td>
   </tr>
 </table>
 
@@ -587,13 +587,23 @@ function parsePastedTSV() {
       throw new Error("No readable text found.");
     }
     
-    const firstLineCells = lines[0].split('\t').map(h => h.trim());
+    // Use tab separator if tab exists, otherwise split by 2+ consecutive spaces
+    const separator = lines[0].includes('\t') ? '\t' : / {2,}/;
+    const firstLineCells = lines[0].split(separator).map(h => h.trim());
     
-    // Detect if first line contains header keywords vs data
-    const hasHeaderRow = firstLineCells.some(cell => {
-      const lower = cell.toLowerCase();
-      return lower.includes('s.no') || lower.includes('laptop') || lower.includes('serial') || lower.includes('user name') || lower.includes('employee') || lower.includes('pc name') || lower.includes('ad id');
+    // Detect if first line contains header keywords vs data by checking matching headers count
+    let matchingHeaderCount = 0;
+    const normalizedFrozen = FROZEN_HEADERS.map(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase());
+    
+    firstLineCells.forEach(cell => {
+      const normCell = cell.replace(/[\s_\-\/\\()]/g, '').toLowerCase();
+      if (normalizedFrozen.includes(normCell) && normCell !== '') {
+        matchingHeaderCount++;
+      }
     });
+    
+    // If 3 or more cells match frozen headers, it is a header row!
+    const hasHeaderRow = matchingHeaderCount >= 3;
     
     let headers = [];
     let startLineIndex = 1;
@@ -612,7 +622,7 @@ function parsePastedTSV() {
       const line = lines[i].trim();
       if (!line) continue;
       
-      const cells = lines[i].split('\t').map(c => c.trim());
+      const cells = lines[i].split(separator).map(c => c.trim());
       const rowObj = {};
       
       headers.forEach((header, colIndex) => {
@@ -666,11 +676,19 @@ function processExcelFile(file) {
       
       const firstRowCells = nonEmptyRows[0].map(h => String(h).trim());
       
-      // Detect if first row contains header keywords vs data
-      const hasHeaderRow = firstRowCells.some(cell => {
-        const lower = cell.toLowerCase();
-        return lower.includes('s.no') || lower.includes('laptop') || lower.includes('serial') || lower.includes('user name') || lower.includes('employee') || lower.includes('pc name') || lower.includes('ad id');
+      // Detect if first row contains header keywords vs data by checking matching headers count
+      let matchingHeaderCount = 0;
+      const normalizedFrozen = FROZEN_HEADERS.map(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase());
+      
+      firstRowCells.forEach(cell => {
+        const normCell = cell.replace(/[\s_\-\/\\()]/g, '').toLowerCase();
+        if (normalizedFrozen.includes(normCell) && normCell !== '') {
+          matchingHeaderCount++;
+        }
       });
+      
+      // If 3 or more cells match frozen headers, it is a header row!
+      const hasHeaderRow = matchingHeaderCount >= 3;
       
       let headers = [];
       let startRowIndex = 1;
