@@ -343,6 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadDefaultTemplate();
   registerEvents();
   checkMappingStatus();
+  syncReplacementInputs();
 });
 
 function initLucide() {
@@ -1029,6 +1030,7 @@ function navigatePreview(direction) {
   
   elements.currentRecordNum.textContent = appState.currentPreviewIndex + 1;
   updatePreview();
+  syncReplacementInputs();
   
   // If edit tab is active, refresh the form fields
   const editTab = document.getElementById('edit-tab');
@@ -1224,6 +1226,9 @@ function renderManualEditForm() {
           cells[headerIndex].textContent = e.target.value;
         }
       }
+      
+      // Sync replacement inputs on tab 2 if they are modified
+      syncReplacementInputs();
     });
     
     formGroup.appendChild(label);
@@ -1317,6 +1322,7 @@ function syncDataState() {
   autoMapColumns();
   updatePreview();
   checkMappingStatus();
+  syncReplacementInputs();
 }
 
 // Event Listeners Registration
@@ -1401,5 +1407,90 @@ function registerEvents() {
   const chkIncludeReplacement = document.getElementById('chk-include-replacement');
   if (chkIncludeReplacement) {
     chkIncludeReplacement.addEventListener('change', updatePreview);
+  }
+  
+  // Spare / Replacement inputs sync to active record
+  const repModelInput = document.getElementById('replacement-model-input');
+  const repSerialInput = document.getElementById('replacement-serial-input');
+  
+  if (repModelInput) {
+    repModelInput.addEventListener('input', (e) => {
+      if (appState.rows.length === 0) return;
+      const record = appState.rows[appState.currentPreviewIndex];
+      const modelHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'replacementlaptopmodel') || 'Replacement Laptop Model';
+      record[modelHeader] = e.target.value;
+      updatePreview();
+      
+      // Update manual edit form if open on tab 4
+      const editInputs = document.querySelectorAll('#edit-record-form-container input');
+      editInputs.forEach(input => {
+        const label = input.previousElementSibling;
+        if (label && label.textContent === modelHeader) {
+          input.value = e.target.value;
+        }
+      });
+      
+      updateDataTablePreviewCell(modelHeader, e.target.value);
+    });
+  }
+  
+  if (repSerialInput) {
+    repSerialInput.addEventListener('input', (e) => {
+      if (appState.rows.length === 0) return;
+      const record = appState.rows[appState.currentPreviewIndex];
+      const serialHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'replacementserialnumber') || 'Replacement Serial Number';
+      record[serialHeader] = e.target.value;
+      updatePreview();
+      
+      // Update manual edit form if open on tab 4
+      const editInputs = document.querySelectorAll('#edit-record-form-container input');
+      editInputs.forEach(input => {
+        const label = input.previousElementSibling;
+        if (label && label.textContent === serialHeader) {
+          input.value = e.target.value;
+        }
+      });
+      
+      updateDataTablePreviewCell(serialHeader, e.target.value);
+    });
+  }
+}
+
+function syncReplacementInputs() {
+  const modelInput = document.getElementById('replacement-model-input');
+  const serialInput = document.getElementById('replacement-serial-input');
+  const disabledNote = document.getElementById('replacement-disabled-note');
+  
+  if (!modelInput || !serialInput) return;
+  
+  if (appState.rows.length === 0) {
+    modelInput.value = '';
+    serialInput.value = '';
+    modelInput.disabled = true;
+    serialInput.disabled = true;
+    if (disabledNote) disabledNote.style.display = 'flex';
+  } else {
+    modelInput.disabled = false;
+    serialInput.disabled = false;
+    if (disabledNote) disabledNote.style.display = 'none';
+    
+    const record = appState.rows[appState.currentPreviewIndex];
+    const modelHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'replacementlaptopmodel') || 'Replacement Laptop Model';
+    const serialHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'replacementserialnumber') || 'Replacement Serial Number';
+    
+    modelInput.value = record[modelHeader] || '';
+    serialInput.value = record[serialHeader] || '';
+  }
+}
+
+function updateDataTablePreviewCell(header, value) {
+  const tableRows = elements.dataTableBody.querySelectorAll('tr');
+  if (tableRows.length > appState.currentPreviewIndex) {
+    const rowEl = tableRows[appState.currentPreviewIndex];
+    const cells = rowEl.querySelectorAll('td');
+    const headerIndex = appState.headers.indexOf(header);
+    if (headerIndex !== -1 && cells.length > headerIndex) {
+      cells[headerIndex].textContent = value;
+    }
   }
 }
