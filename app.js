@@ -160,7 +160,7 @@ const DEFAULT_TEMPLATE = `<div style="text-align: center; margin-bottom: 1.25rem
       <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
       <td style="border: 1px solid #444; padding: 4px 6px;"></td>
     </tr>
-    <tr>
+    <tr style="display: [[Has_Replacement]];">
       <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">3</td>
       <td style="border: 1px solid #444; padding: 4px 6px;">Spare / Replacement Laptop: <strong>{{Replacement_Laptop_Model}}</strong></td>
       <td style="border: 1px solid #444; padding: 4px 6px;">{{Replacement_Serial_Number}}</td>
@@ -927,14 +927,11 @@ function renderDocumentHTML(recordIndex) {
   const record = appState.rows[recordIndex];
   let renderedText = appState.template;
   
-  // Check if replacement laptop details are present and non-empty
-  const repModelHeader = appState.mapping['Replacement_Laptop_Model'] || appState.mapping['Replacement Laptop Model'] || 'Replacement Laptop Model';
-  const repSerialHeader = appState.mapping['Replacement_Serial_Number'] || appState.mapping['Replacement Serial Number'] || 'Replacement Serial Number';
+  // Check if replacement laptop details are present and option is checked
+  const includeReplacementChk = document.getElementById('chk-include-replacement');
+  const includeReplacement = includeReplacementChk ? includeReplacementChk.checked : true;
   
-  const repModelVal = record[repModelHeader] !== undefined ? String(record[repModelHeader]).trim() : '';
-  const repSerialVal = record[repSerialHeader] !== undefined ? String(record[repSerialHeader]).trim() : '';
-  
-  const hasReplacement = (repModelVal !== '' || repSerialVal !== '') ? 'table-row' : 'none';
+  const hasReplacement = includeReplacement ? 'table-row' : 'none';
   renderedText = renderedText.replace(/\[\[Has_Replacement\]\]/g, hasReplacement);
   
   // Replace all occurrences of placeholders
@@ -1064,6 +1061,12 @@ function downloadCurrentRecordMarkdown() {
   const record = appState.rows[appState.currentPreviewIndex];
   let renderedText = appState.template;
   
+  // Replace Has_Replacement
+  const includeReplacementChk = document.getElementById('chk-include-replacement');
+  const includeReplacement = includeReplacementChk ? includeReplacementChk.checked : true;
+  const hasReplacement = includeReplacement ? 'table-row' : 'none';
+  renderedText = renderedText.replace(/\[\[Has_Replacement\]\]/g, hasReplacement);
+  
   appState.placeholders.forEach(placeholder => {
     const mappedHeader = appState.mapping[placeholder];
     const value = mappedHeader !== undefined && record[mappedHeader] !== undefined ? record[mappedHeader] : `[${placeholder}]`;
@@ -1123,6 +1126,12 @@ function downloadAllRecordsZip() {
   for (let i = 0; i < appState.rows.length; i++) {
     const record = appState.rows[i];
     let renderedText = appState.template;
+    
+    // Replace Has_Replacement
+    const includeReplacementChk = document.getElementById('chk-include-replacement');
+    const includeReplacement = includeReplacementChk ? includeReplacementChk.checked : true;
+    const hasReplacement = includeReplacement ? 'table-row' : 'none';
+    renderedText = renderedText.replace(/\[\[Has_Replacement\]\]/g, hasReplacement);
     
     appState.placeholders.forEach(placeholder => {
       const mappedHeader = appState.mapping[placeholder];
@@ -1387,4 +1396,10 @@ function registerEvents() {
   elements.btnDownloadMdCurrent.addEventListener('click', downloadCurrentRecordMarkdown);
   elements.btnPrintAll.addEventListener('click', printAllRecords);
   elements.btnZipAll.addEventListener('click', downloadAllRecordsZip);
+  
+  // Toggle replacement laptop row option
+  const chkIncludeReplacement = document.getElementById('chk-include-replacement');
+  if (chkIncludeReplacement) {
+    chkIncludeReplacement.addEventListener('change', updatePreview);
+  }
 }
