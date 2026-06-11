@@ -160,9 +160,9 @@ const DEFAULT_TEMPLATE = `<div style="text-align: center; margin-bottom: 1.25rem
       <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
       <td style="border: 1px solid #444; padding: 4px 6px;"></td>
     </tr>
-    <tr style="display: [[Has_Replacement]];">
+    <tr>
       <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">3</td>
-      <td style="border: 1px solid #444; padding: 4px 6px;">Replacement Laptop: <strong>{{Replacement_Laptop_Model}}</strong></td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">Spare / Replacement Laptop: <strong>{{Replacement_Laptop_Model}}</strong></td>
       <td style="border: 1px solid #444; padding: 4px 6px;">{{Replacement_Serial_Number}}</td>
       <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
       <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
@@ -1190,6 +1190,15 @@ function renderManualEditForm() {
     input.type = 'text';
     input.className = 'form-input';
     input.value = record[header] || '';
+    
+    // Suggest placeholder hints
+    if (header === "Replacement Laptop Model") {
+      input.placeholder = "Enter Spare / Replacement Laptop Model (e.g. ThinkPad T14)";
+    } else if (header === "Replacement Serial Number") {
+      input.placeholder = "Enter Spare / Replacement Laptop Serial Number (e.g. PF64CYV4)";
+    } else {
+      input.placeholder = `Enter ${header}`;
+    }
     
     // On input, save immediately to appState and update preview
     input.addEventListener('input', (e) => {
