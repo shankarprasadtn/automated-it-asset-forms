@@ -525,6 +525,25 @@ function switchTab(tabId) {
 
 // Data Parsing
 function handleDataParsed(headers, rows) {
+  if (headers.length > 0) {
+    if (!headers.includes("Replacement Laptop Model")) {
+      headers.push("Replacement Laptop Model");
+    }
+    if (!headers.includes("Replacement Serial Number")) {
+      headers.push("Replacement Serial Number");
+    }
+    
+    // Also ensure every row has these keys
+    rows.forEach(row => {
+      if (row["Replacement Laptop Model"] === undefined) {
+        row["Replacement Laptop Model"] = "";
+      }
+      if (row["Replacement Serial Number"] === undefined) {
+        row["Replacement Serial Number"] = "";
+      }
+    });
+  }
+
   appState.headers = headers;
   appState.rows = rows;
   appState.currentPreviewIndex = 0;
