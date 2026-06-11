@@ -1088,7 +1088,7 @@ tr:hover td {
     break-after: page !important;
     box-sizing: border-box;
     font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    line-height: 1.6 !important; /* Proper comfortable line height to fill page height */
+    line-height: 1.4 !important; /* Proper comfortable line height to fill page height */
   }
 
   /* Avoid break inside important paragraphs, lists, signatures */
@@ -1100,48 +1100,48 @@ tr:hover td {
 
   /* Layout typography enhancements for black & white print */
   .print-page h1 {
-    font-size: 18pt !important;
+    font-size: 16pt !important;
     border-bottom: 2px solid #000000 !important;
-    padding-bottom: 6px !important;
-    margin-bottom: 16px !important;
+    padding-bottom: 4px !important;
+    margin-bottom: 12px !important;
     text-align: center;
   }
 
   .print-page h2 {
-    font-size: 14pt !important;
-    margin-top: 16pt !important;
-    margin-bottom: 8pt !important;
+    font-size: 12pt !important;
+    margin-top: 10pt !important;
+    margin-bottom: 6pt !important;
   }
 
   .print-page h3 {
-    font-size: 12pt !important;
-    margin-top: 14pt !important;
-    margin-bottom: 8pt !important;
+    font-size: 10.5pt !important;
+    margin-top: 10pt !important;
+    margin-bottom: 6pt !important;
   }
 
   .print-page p {
-    font-size: 10.5pt !important; /* Large, easy-to-read font size */
+    font-size: 8.5pt !important; /* Spacious but compact font size */
     color: #111111 !important;
-    margin-bottom: 10pt !important; /* Spacious paragraph margins to fill the page */
+    margin-bottom: 6pt !important; /* Compact paragraph margins */
   }
 
   .print-page li {
-    font-size: 10pt !important;
+    font-size: 8pt !important;
     color: #111111 !important;
-    margin-bottom: 6pt !important; /* Spacious list item margins */
+    margin-bottom: 4pt !important; /* Compact list item margins */
   }
 
   .print-page table {
     width: 100% !important;
     border-collapse: collapse !important;
-    margin: 15pt 0 !important;
+    margin: 10pt 0 !important;
   }
 
   /* Remove !important from borders and padding to allow inline styles (e.g. border: none) to override them */
   .print-page th, .print-page td {
     border: 1px solid #444444;
-    padding: 6pt 9pt; /* Clear standard table padding */
-    font-size: 9pt;
+    padding: 4pt 6pt; /* Compact standard table padding */
+    font-size: 8pt;
     color: #000000 !important;
   }
 

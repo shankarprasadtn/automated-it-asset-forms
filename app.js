@@ -58,9 +58,9 @@ const DEFAULT_TEMPLATE = `<div style="text-align: center; margin-bottom: 1.25rem
   </div>
 </div>
 
-<hr style="border: none; border-top: 1px dashed #bbb; margin: 1rem 0;">
+<div class="page-break"></div>
 
-<h3 style="font-size: 0.95rem; font-weight: 700; border-bottom: 1px solid #333; padding-bottom: 2px; margin-bottom: 0.85rem; text-transform: uppercase;">Guidelines of Usage</h3>
+<h3 style="font-size: 0.95rem; font-weight: 700; border-bottom: 1px solid #333; padding-bottom: 2px; margin-bottom: 0.85rem; text-transform: uppercase; margin-top: 0;">Guidelines of Usage</h3>
 
 <h4 style="font-size: 0.82rem; font-weight: 700; margin: 0.6rem 0 0.3rem 0; color: #222;">General Use & Maintenance</h4>
 <ul style="font-size: 0.78rem; list-style-type: none; padding-left: 0; margin-bottom: 0.85rem; line-height: 1.45;">
@@ -89,8 +89,6 @@ const DEFAULT_TEMPLATE = `<div style="text-align: center; margin-bottom: 1.25rem
 <div style="margin-top: 0.75rem; font-size: 0.62rem; color: #666; border-top: 1px solid #ddd; padding-top: 0.35rem; line-height: 1.3;">
   ¹ 'Events of "force majeure" include but are not limited to : reasons of acts of God, riots, wars, accidents of transportation, any event outside my control and/or other similar causes ordinarily referred to as force majeure events.
 </div>
-
-<div class="page-break"></div>
 
 <ul style="font-size: 0.78rem; list-style-type: none; padding-left: 0; margin-top: 0.65rem; margin-bottom: 0.85rem; line-height: 1.45;">
   <li style="margin-bottom: 0.45rem; padding-left: 1.25rem; text-indent: -1.25rem;">
