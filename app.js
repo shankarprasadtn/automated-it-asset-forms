@@ -298,6 +298,12 @@ const elements = {
   btnTabTemplate: document.getElementById('btn-tab-template'),
   btnTabData: document.getElementById('btn-tab-data'),
   btnTabMapping: document.getElementById('btn-tab-mapping'),
+  btnTabEdit: document.getElementById('btn-tab-edit'),
+  editRecordFormContainer: document.getElementById('edit-record-form-container'),
+  btnAddRecord: document.getElementById('btn-add-record'),
+  btnDeleteRecord: document.getElementById('btn-delete-record'),
+  btnStartManual: document.getElementById('btn-start-manual'),
+  editEmptyState: document.getElementById('edit-empty-state'),
   
   // Step Titles
   currentStepTitle: document.getElementById('current-step-title'),
@@ -497,6 +503,10 @@ function switchTab(tabId) {
     elements.currentStepTitle.textContent = 'Map Placeholders';
     elements.currentStepSubtitle.textContent = 'Link the template placeholders with data columns';
     updateMappingUI();
+  } else if (tabId === 'edit-tab') {
+    elements.currentStepTitle.textContent = 'Manual Record Editor';
+    elements.currentStepSubtitle.textContent = 'Add, delete, or edit record values manually';
+    renderManualEditForm();
   }
 }
 
@@ -980,6 +990,12 @@ function navigatePreview(direction) {
   
   elements.currentRecordNum.textContent = appState.currentPreviewIndex + 1;
   updatePreview();
+  
+  // If edit tab is active, refresh the form fields
+  const editTab = document.getElementById('edit-tab');
+  if (editTab && editTab.classList.contains('active')) {
+    renderManualEditForm();
+  }
 }
 
 // Single Export / Print Functions
@@ -1096,12 +1112,165 @@ function clearData() {
   }
 }
 
+// Manual Record Editing & Form Sinking
+function renderManualEditForm() {
+  const container = elements.editRecordFormContainer;
+  
+  // Clear container except empty state if we need it
+  container.innerHTML = '';
+  
+  if (appState.rows.length === 0) {
+    // Show empty state
+    container.appendChild(elements.editEmptyState);
+    elements.editEmptyState.style.display = 'flex';
+    elements.btnDeleteRecord.disabled = true;
+    elements.btnAddRecord.disabled = true;
+    return;
+  }
+  
+  // Hide empty state
+  elements.editEmptyState.style.display = 'none';
+  elements.btnDeleteRecord.disabled = false;
+  elements.btnAddRecord.disabled = false;
+  
+  const record = appState.rows[appState.currentPreviewIndex];
+  
+  // Create edit fields for each header in appState.headers
+  appState.headers.forEach(header => {
+    const formGroup = document.createElement('div');
+    formGroup.className = 'form-group';
+    
+    const label = document.createElement('label');
+    label.className = 'form-label';
+    label.textContent = header;
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'form-input';
+    input.value = record[header] || '';
+    
+    // On input, save immediately to appState and update preview
+    input.addEventListener('input', (e) => {
+      record[header] = e.target.value;
+      updatePreview();
+      
+      // Update data table row preview if it is displayed
+      const tableRows = elements.dataTableBody.querySelectorAll('tr');
+      if (tableRows.length > appState.currentPreviewIndex) {
+        const rowEl = tableRows[appState.currentPreviewIndex];
+        const cells = rowEl.querySelectorAll('td');
+        const headerIndex = appState.headers.indexOf(header);
+        if (headerIndex !== -1 && cells.length > headerIndex) {
+          cells[headerIndex].textContent = e.target.value;
+        }
+      }
+    });
+    
+    formGroup.appendChild(label);
+    formGroup.appendChild(input);
+    container.appendChild(formGroup);
+  });
+}
+
+function addNewRecord() {
+  // Determine headers if none are loaded
+  if (appState.headers.length === 0) {
+    appState.headers = [...FROZEN_HEADERS];
+  }
+  
+  const newRow = {};
+  appState.headers.forEach(h => {
+    if (h === 'S.NO') {
+      newRow[h] = String(appState.rows.length + 1);
+    } else {
+      newRow[h] = '';
+    }
+  });
+  
+  appState.rows.push(newRow);
+  appState.currentPreviewIndex = appState.rows.length - 1;
+  
+  // Refresh UI
+  syncDataState();
+  renderManualEditForm();
+  
+  // Move to edit tab
+  switchTab('edit-tab');
+}
+
+function deleteCurrentRecord() {
+  if (appState.rows.length === 0) return;
+  
+  if (confirm(`Are you sure you want to delete Record ${appState.currentPreviewIndex + 1}?`)) {
+    appState.rows.splice(appState.currentPreviewIndex, 1);
+    
+    // Re-index S.NO columns for subsequent rows if desired
+    appState.rows.forEach((row, index) => {
+      if (row['S.NO'] !== undefined && !isNaN(row['S.NO'])) {
+        row['S.NO'] = String(index + 1);
+      }
+    });
+    
+    // Adjust current preview index
+    if (appState.currentPreviewIndex >= appState.rows.length) {
+      appState.currentPreviewIndex = Math.max(0, appState.rows.length - 1);
+    }
+    
+    // Refresh UI
+    syncDataState();
+    renderManualEditForm();
+  }
+}
+
+function startManualEntry() {
+  appState.headers = [...FROZEN_HEADERS];
+  appState.rows = [];
+  addNewRecord();
+}
+
+function syncDataState() {
+  elements.statRecordsCount.textContent = appState.rows.length;
+  elements.dataCountBadge.textContent = appState.rows.length;
+  elements.dataCountBadge.style.display = appState.rows.length > 0 ? 'inline-block' : 'none';
+  elements.bulkCountIndicator.textContent = appState.rows.length;
+  
+  // Reset preview indicators
+  const hasData = appState.rows.length > 0;
+  elements.btnPrintCurrent.disabled = !hasData;
+  elements.btnDownloadMdCurrent.disabled = !hasData;
+  elements.btnPrintAll.disabled = !hasData;
+  elements.btnZipAll.disabled = !hasData;
+  
+  if (hasData) {
+    elements.previewPagination.style.display = 'flex';
+    elements.totalRecordsNum.textContent = appState.rows.length;
+    elements.currentRecordNum.textContent = appState.currentPreviewIndex + 1;
+    elements.dataPreviewSection.style.display = 'block';
+    elements.parsedCountIndicator.textContent = appState.rows.length;
+  } else {
+    elements.previewPagination.style.display = 'none';
+    elements.dataPreviewSection.style.display = 'none';
+    elements.parsedCountIndicator.textContent = '0';
+  }
+  
+  renderDataTable();
+  autoMapColumns();
+  updatePreview();
+  checkMappingStatus();
+}
+
 // Event Listeners Registration
 function registerEvents() {
   // Tabs switcher
   elements.btnTabTemplate.addEventListener('click', () => switchTab('template-tab'));
   elements.btnTabData.addEventListener('click', () => switchTab('data-tab'));
   elements.btnTabMapping.addEventListener('click', () => switchTab('mapping-tab'));
+  elements.btnTabEdit.addEventListener('click', () => switchTab('edit-tab'));
+  
+  // Manual Editing Events
+  elements.btnAddRecord.addEventListener('click', addNewRecord);
+  elements.btnDeleteRecord.addEventListener('click', deleteCurrentRecord);
+  elements.btnStartManual.addEventListener('click', startManualEntry);
   
   // Theme Toggles
   elements.darkThemeBtn.addEventListener('click', () => setTheme('dark'));
