@@ -1460,7 +1460,7 @@ function registerEvents() {
   
   if (repModelInput) {
     repModelInput.addEventListener('input', (e) => {
-      if (appState.rows.length === 0) return;
+      ensureActiveRecord();
       const record = appState.rows[appState.currentPreviewIndex];
       const modelHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'replacementlaptopmodel') || 'Replacement Laptop Model';
       record[modelHeader] = e.target.value;
@@ -1481,7 +1481,7 @@ function registerEvents() {
   
   if (repSerialInput) {
     repSerialInput.addEventListener('input', (e) => {
-      if (appState.rows.length === 0) return;
+      ensureActiveRecord();
       const record = appState.rows[appState.currentPreviewIndex];
       const serialHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'replacementserialnumber') || 'Replacement Serial Number';
       record[serialHeader] = e.target.value;
@@ -1506,7 +1506,7 @@ function registerEvents() {
   
   if (retModelInput) {
     retModelInput.addEventListener('input', (e) => {
-      if (appState.rows.length === 0) return;
+      ensureActiveRecord();
       const record = appState.rows[appState.currentPreviewIndex];
       const modelHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'returnedlaptopmodel') || 'Returned Laptop Model';
       record[modelHeader] = e.target.value;
@@ -1527,7 +1527,7 @@ function registerEvents() {
   
   if (retSerialInput) {
     retSerialInput.addEventListener('input', (e) => {
-      if (appState.rows.length === 0) return;
+      ensureActiveRecord();
       const record = appState.rows[appState.currentPreviewIndex];
       const serialHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'returnedlaptopserialnumber') || 'Returned Laptop Serial Number';
       record[serialHeader] = e.target.value;
@@ -1556,23 +1556,14 @@ function syncReplacementInputs() {
   
   if (!modelInput || !serialInput || !retModelInput || !retSerialInput) return;
   
-  if (appState.rows.length === 0) {
-    modelInput.value = '';
-    serialInput.value = '';
-    retModelInput.value = '';
-    retSerialInput.value = '';
-    modelInput.disabled = true;
-    serialInput.disabled = true;
-    retModelInput.disabled = true;
-    retSerialInput.disabled = true;
-    if (disabledNote) disabledNote.style.display = 'flex';
-  } else {
-    modelInput.disabled = false;
-    serialInput.disabled = false;
-    retModelInput.disabled = false;
-    retSerialInput.disabled = false;
-    if (disabledNote) disabledNote.style.display = 'none';
-    
+  // They are ALWAYS enabled!
+  modelInput.disabled = false;
+  serialInput.disabled = false;
+  retModelInput.disabled = false;
+  retSerialInput.disabled = false;
+  if (disabledNote) disabledNote.style.display = 'none';
+  
+  if (appState.rows.length > 0) {
     const record = appState.rows[appState.currentPreviewIndex];
     const modelHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'replacementlaptopmodel') || 'Replacement Laptop Model';
     const serialHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'replacementserialnumber') || 'Replacement Serial Number';
@@ -1583,6 +1574,11 @@ function syncReplacementInputs() {
     serialInput.value = record[serialHeader] || '';
     retModelInput.value = record[retModelHeader] || '';
     retSerialInput.value = record[retSerialHeader] || '';
+  } else {
+    modelInput.value = '';
+    serialInput.value = '';
+    retModelInput.value = '';
+    retSerialInput.value = '';
   }
 }
 
@@ -1595,5 +1591,38 @@ function updateDataTablePreviewCell(header, value) {
     if (headerIndex !== -1 && cells.length > headerIndex) {
       cells[headerIndex].textContent = value;
     }
+  }
+}
+
+function ensureActiveRecord() {
+  if (appState.rows.length === 0) {
+    appState.headers = [...FROZEN_HEADERS];
+    const newRow = {};
+    appState.headers.forEach(h => {
+      if (h === 'S.NO') {
+        newRow[h] = '1';
+      } else {
+        newRow[h] = '';
+      }
+    });
+    appState.rows.push(newRow);
+    appState.currentPreviewIndex = 0;
+    
+    // Update basic stats so UI shows 1 record
+    elements.statRecordsCount.textContent = 1;
+    elements.dataCountBadge.textContent = 1;
+    elements.dataCountBadge.style.display = 'inline-block';
+    elements.bulkCountIndicator.textContent = 1;
+    
+    elements.btnPrintCurrent.disabled = false;
+    elements.btnDownloadMdCurrent.disabled = false;
+    elements.btnPrintAll.disabled = false;
+    elements.btnZipAll.disabled = false;
+    
+    elements.previewPagination.style.display = 'flex';
+    elements.totalRecordsNum.textContent = 1;
+    elements.currentRecordNum.textContent = 1;
+    
+    renderDataTable();
   }
 }
