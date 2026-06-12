@@ -16,7 +16,8 @@ const FROZEN_HEADERS = [
   "S.NO", "Laptop Model", "Serial Number", "PC Name", "User Name",
   "AD ID", "Employee ID", "Dept", "Manager", "Directors",
   "H/O Date", "Headset", "Docking", "Mouse",
-  "Replacement Laptop Model", "Replacement Serial Number"
+  "Replacement Laptop Model", "Replacement Serial Number",
+  "Returned Laptop Model", "Returned Laptop Serial Number"
 ];
 
 // Default Agreement Template (Markdown)
@@ -160,13 +161,21 @@ const DEFAULT_TEMPLATE = `<div style="text-align: center; margin-bottom: 1.25rem
       <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
       <td style="border: 1px solid #444; padding: 4px 6px;"></td>
     </tr>
-    <tr style="display: [[Has_Replacement]];">
+    <tr style="display: [[Has_Collected]];">
       <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">3</td>
-      <td style="border: 1px solid #444; padding: 4px 6px;">Spare / Replacement Laptop: <strong>{{Replacement_Laptop_Model}}</strong></td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">Collected Laptop: <strong>{{Replacement_Laptop_Model}}</strong></td>
       <td style="border: 1px solid #444; padding: 4px 6px;">{{Replacement_Serial_Number}}</td>
       <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
       <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
-      <td style="border: 1px solid #444; padding: 4px 6px;">REPLACEMENT</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">COLLECTED</td>
+    </tr>
+    <tr style="display: [[Has_Returned]];">
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">4</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">Returned Laptop: <strong>{{Returned_Laptop_Model}}</strong></td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">{{Returned_Serial_Number}}</td>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">RETURNED</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">RETURNED</td>
     </tr>
     <!-- Accessories Section -->
     <tr style="background-color: #eee; font-weight: 700;">
@@ -245,7 +254,9 @@ const SAMPLE_DATA = [
     "Docking": "Dell USB-C Dual Dock",
     "Mouse": "Logitech MX Master 3S",
     "Replacement Laptop Model": "ThinkPad T14 Gen 4",
-    "Replacement Serial Number": "PF3X9Y2Z"
+    "Replacement Serial Number": "PF3X9Y2Z",
+    "Returned Laptop Model": "ThinkPad T14 Gen 2",
+    "Returned Laptop Serial Number": "PF4CFLJN"
   },
   {
     "S.NO": "2",
@@ -263,7 +274,9 @@ const SAMPLE_DATA = [
     "Docking": "Caldigit TS4 Thunderbolt Dock",
     "Mouse": "Apple Magic Mouse",
     "Replacement Laptop Model": "",
-    "Replacement Serial Number": ""
+    "Replacement Serial Number": "",
+    "Returned Laptop Model": "",
+    "Returned Laptop Serial Number": ""
   }
 ];
 
@@ -533,6 +546,12 @@ function handleDataParsed(headers, rows) {
     if (!headers.includes("Replacement Serial Number")) {
       headers.push("Replacement Serial Number");
     }
+    if (!headers.includes("Returned Laptop Model")) {
+      headers.push("Returned Laptop Model");
+    }
+    if (!headers.includes("Returned Laptop Serial Number")) {
+      headers.push("Returned Laptop Serial Number");
+    }
     
     // Also ensure every row has these keys
     rows.forEach(row => {
@@ -541,6 +560,12 @@ function handleDataParsed(headers, rows) {
       }
       if (row["Replacement Serial Number"] === undefined) {
         row["Replacement Serial Number"] = "";
+      }
+      if (row["Returned Laptop Model"] === undefined) {
+        row["Returned Laptop Model"] = "";
+      }
+      if (row["Returned Laptop Serial Number"] === undefined) {
+        row["Returned Laptop Serial Number"] = "";
       }
     });
   }
@@ -578,6 +603,7 @@ function handleDataParsed(headers, rows) {
   
   updatePreview();
   checkMappingStatus();
+  syncReplacementInputs();
 }
 
 function renderDataTable() {
@@ -838,6 +864,7 @@ function updateMappingUI() {
       appState.mapping[placeholder] = e.target.value;
       updatePreview();
       checkMappingStatus();
+      syncReplacementInputs();
     });
     
     selectCol.appendChild(select);
@@ -928,12 +955,16 @@ function renderDocumentHTML(recordIndex) {
   const record = appState.rows[recordIndex];
   let renderedText = appState.template;
   
-  // Check if replacement laptop details are present and option is checked
-  const includeReplacementChk = document.getElementById('chk-include-replacement');
-  const includeReplacement = includeReplacementChk ? includeReplacementChk.checked : true;
+  // Check if replacement details (collected & returned) option is checked
+  const includeCollectedChk = document.getElementById('chk-include-collected');
+  const includeCollected = includeCollectedChk ? includeCollectedChk.checked : true;
+  const hasCollected = includeCollected ? 'table-row' : 'none';
+  renderedText = renderedText.replace(/\[\[Has_Collected\]\]/g, hasCollected);
   
-  const hasReplacement = includeReplacement ? 'table-row' : 'none';
-  renderedText = renderedText.replace(/\[\[Has_Replacement\]\]/g, hasReplacement);
+  const includeReturnedChk = document.getElementById('chk-include-returned');
+  const includeReturned = includeReturnedChk ? includeReturnedChk.checked : true;
+  const hasReturned = includeReturned ? 'table-row' : 'none';
+  renderedText = renderedText.replace(/\[\[Has_Returned\]\]/g, hasReturned);
   
   // Replace all occurrences of placeholders
   appState.placeholders.forEach(placeholder => {
@@ -1063,11 +1094,16 @@ function downloadCurrentRecordMarkdown() {
   const record = appState.rows[appState.currentPreviewIndex];
   let renderedText = appState.template;
   
-  // Replace Has_Replacement
-  const includeReplacementChk = document.getElementById('chk-include-replacement');
-  const includeReplacement = includeReplacementChk ? includeReplacementChk.checked : true;
-  const hasReplacement = includeReplacement ? 'table-row' : 'none';
-  renderedText = renderedText.replace(/\[\[Has_Replacement\]\]/g, hasReplacement);
+  // Replace Has_Collected and Has_Returned
+  const includeCollectedChk = document.getElementById('chk-include-collected');
+  const includeCollected = includeCollectedChk ? includeCollectedChk.checked : true;
+  const hasCollected = includeCollected ? 'table-row' : 'none';
+  renderedText = renderedText.replace(/\[\[Has_Collected\]\]/g, hasCollected);
+  
+  const includeReturnedChk = document.getElementById('chk-include-returned');
+  const includeReturned = includeReturnedChk ? includeReturnedChk.checked : true;
+  const hasReturned = includeReturned ? 'table-row' : 'none';
+  renderedText = renderedText.replace(/\[\[Has_Returned\]\]/g, hasReturned);
   
   appState.placeholders.forEach(placeholder => {
     const mappedHeader = appState.mapping[placeholder];
@@ -1129,11 +1165,16 @@ function downloadAllRecordsZip() {
     const record = appState.rows[i];
     let renderedText = appState.template;
     
-    // Replace Has_Replacement
-    const includeReplacementChk = document.getElementById('chk-include-replacement');
-    const includeReplacement = includeReplacementChk ? includeReplacementChk.checked : true;
-    const hasReplacement = includeReplacement ? 'table-row' : 'none';
-    renderedText = renderedText.replace(/\[\[Has_Replacement\]\]/g, hasReplacement);
+    // Replace Has_Collected and Has_Returned
+    const includeCollectedChk = document.getElementById('chk-include-collected');
+    const includeCollected = includeCollectedChk ? includeCollectedChk.checked : true;
+    const hasCollected = includeCollected ? 'table-row' : 'none';
+    renderedText = renderedText.replace(/\[\[Has_Collected\]\]/g, hasCollected);
+    
+    const includeReturnedChk = document.getElementById('chk-include-returned');
+    const includeReturned = includeReturnedChk ? includeReturnedChk.checked : true;
+    const hasReturned = includeReturned ? 'table-row' : 'none';
+    renderedText = renderedText.replace(/\[\[Has_Returned\]\]/g, hasReturned);
     
     appState.placeholders.forEach(placeholder => {
       const mappedHeader = appState.mapping[placeholder];
@@ -1403,13 +1444,17 @@ function registerEvents() {
   elements.btnPrintAll.addEventListener('click', printAllRecords);
   elements.btnZipAll.addEventListener('click', downloadAllRecordsZip);
   
-  // Toggle replacement laptop row option
-  const chkIncludeReplacement = document.getElementById('chk-include-replacement');
-  if (chkIncludeReplacement) {
-    chkIncludeReplacement.addEventListener('change', updatePreview);
+  // Toggle replacement laptop (collected / returned) options
+  const chkIncludeCollected = document.getElementById('chk-include-collected');
+  if (chkIncludeCollected) {
+    chkIncludeCollected.addEventListener('change', updatePreview);
+  }
+  const chkIncludeReturned = document.getElementById('chk-include-returned');
+  if (chkIncludeReturned) {
+    chkIncludeReturned.addEventListener('change', updatePreview);
   }
   
-  // Spare / Replacement inputs sync to active record
+  // Collected / Replacement inputs sync to active record
   const repModelInput = document.getElementById('replacement-model-input');
   const repSerialInput = document.getElementById('replacement-serial-input');
   
@@ -1454,32 +1499,90 @@ function registerEvents() {
       updateDataTablePreviewCell(serialHeader, e.target.value);
     });
   }
+
+  // Returned Laptop inputs sync to active record
+  const retModelInput = document.getElementById('returned-model-input');
+  const retSerialInput = document.getElementById('returned-serial-input');
+  
+  if (retModelInput) {
+    retModelInput.addEventListener('input', (e) => {
+      if (appState.rows.length === 0) return;
+      const record = appState.rows[appState.currentPreviewIndex];
+      const modelHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'returnedlaptopmodel') || 'Returned Laptop Model';
+      record[modelHeader] = e.target.value;
+      updatePreview();
+      
+      // Update manual edit form if open on tab 4
+      const editInputs = document.querySelectorAll('#edit-record-form-container input');
+      editInputs.forEach(input => {
+        const label = input.previousElementSibling;
+        if (label && label.textContent === modelHeader) {
+          input.value = e.target.value;
+        }
+      });
+      
+      updateDataTablePreviewCell(modelHeader, e.target.value);
+    });
+  }
+  
+  if (retSerialInput) {
+    retSerialInput.addEventListener('input', (e) => {
+      if (appState.rows.length === 0) return;
+      const record = appState.rows[appState.currentPreviewIndex];
+      const serialHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'returnedlaptopserialnumber') || 'Returned Laptop Serial Number';
+      record[serialHeader] = e.target.value;
+      updatePreview();
+      
+      // Update manual edit form if open on tab 4
+      const editInputs = document.querySelectorAll('#edit-record-form-container input');
+      editInputs.forEach(input => {
+        const label = input.previousElementSibling;
+        if (label && label.textContent === serialHeader) {
+          input.value = e.target.value;
+        }
+      });
+      
+      updateDataTablePreviewCell(serialHeader, e.target.value);
+    });
+  }
 }
 
 function syncReplacementInputs() {
   const modelInput = document.getElementById('replacement-model-input');
   const serialInput = document.getElementById('replacement-serial-input');
+  const retModelInput = document.getElementById('returned-model-input');
+  const retSerialInput = document.getElementById('returned-serial-input');
   const disabledNote = document.getElementById('replacement-disabled-note');
   
-  if (!modelInput || !serialInput) return;
+  if (!modelInput || !serialInput || !retModelInput || !retSerialInput) return;
   
   if (appState.rows.length === 0) {
     modelInput.value = '';
     serialInput.value = '';
+    retModelInput.value = '';
+    retSerialInput.value = '';
     modelInput.disabled = true;
     serialInput.disabled = true;
+    retModelInput.disabled = true;
+    retSerialInput.disabled = true;
     if (disabledNote) disabledNote.style.display = 'flex';
   } else {
     modelInput.disabled = false;
     serialInput.disabled = false;
+    retModelInput.disabled = false;
+    retSerialInput.disabled = false;
     if (disabledNote) disabledNote.style.display = 'none';
     
     const record = appState.rows[appState.currentPreviewIndex];
     const modelHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'replacementlaptopmodel') || 'Replacement Laptop Model';
     const serialHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'replacementserialnumber') || 'Replacement Serial Number';
+    const retModelHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'returnedlaptopmodel') || 'Returned Laptop Model';
+    const retSerialHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'returnedlaptopserialnumber') || 'Returned Laptop Serial Number';
     
     modelInput.value = record[modelHeader] || '';
     serialInput.value = record[serialHeader] || '';
+    retModelInput.value = record[retModelHeader] || '';
+    retSerialInput.value = record[retSerialHeader] || '';
   }
 }
 

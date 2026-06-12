@@ -175,27 +175,63 @@
 
               <!-- Section: Spare / Replacement Laptop Details -->
               <div class="replacement-details-card" style="margin-top: 1.5rem; background: var(--card-bg-hover); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem 1.5rem;">
-                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">
                   <h4 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 0.5rem;">
                     <i data-lucide="laptop" style="width: 18px; height: 18px; color: var(--primary-color);"></i>
                     Spare / Replacement Laptop Details
                   </h4>
-                  <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <input type="checkbox" id="chk-include-replacement" checked style="width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-color);">
-                    <label for="chk-include-replacement" style="font-size: 0.82rem; font-weight: 600; cursor: pointer; color: var(--text-color); margin: 0;">Include in Agreement</label>
-                  </div>
                 </div>
                 
-                <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
-                  <div class="form-group" style="flex: 1; min-width: 200px;">
-                    <label class="form-label" for="replacement-model-input">Replacement Laptop Model</label>
-                    <input type="text" id="replacement-model-input" class="form-input" placeholder="e.g. ThinkPad T14 Gen 4" style="background-color: rgba(0, 0, 0, 0.15);">
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                  <!-- Sub-section: Collected Laptop -->
+                  <div style="background: rgba(0, 0, 0, 0.05); padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                      <h5 style="margin: 0; font-size: 0.85rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 0.35rem;">
+                        <span style="display: inline-block; width: 8px; height: 8px; background: #28c76f; border-radius: 50%;"></span>
+                        Collected Laptop (Issued to Employee)
+                      </h5>
+                      <div style="display: flex; align-items: center; gap: 0.35rem;">
+                        <input type="checkbox" id="chk-include-collected" checked style="width: 15px; height: 15px; cursor: pointer; accent-color: var(--primary-color);">
+                        <label for="chk-include-collected" style="font-size: 0.78rem; font-weight: 600; cursor: pointer; color: var(--text-color); margin: 0;">Include in Agreement</label>
+                      </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                      <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label class="form-label" for="replacement-model-input">Collected Laptop Model</label>
+                        <input type="text" id="replacement-model-input" class="form-input" placeholder="e.g. ThinkPad T14 Gen 4" style="background-color: rgba(0, 0, 0, 0.15);">
+                      </div>
+                      <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label class="form-label" for="replacement-serial-input">Collected Laptop Serial Number</label>
+                        <input type="text" id="replacement-serial-input" class="form-input" placeholder="e.g. PF3X9Y2Z" style="background-color: rgba(0, 0, 0, 0.15);">
+                      </div>
+                    </div>
                   </div>
-                  <div class="form-group" style="flex: 1; min-width: 200px;">
-                    <label class="form-label" for="replacement-serial-input">Replacement Serial Number</label>
-                    <input type="text" id="replacement-serial-input" class="form-input" placeholder="e.g. PF3X9Y2Z" style="background-color: rgba(0, 0, 0, 0.15);">
+
+                  <!-- Sub-section: Returned Laptop -->
+                  <div style="background: rgba(0, 0, 0, 0.05); padding: 0.85rem 1rem; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                      <h5 style="margin: 0; font-size: 0.85rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 0.35rem;">
+                        <span style="display: inline-block; width: 8px; height: 8px; background: #ea5455; border-radius: 50%;"></span>
+                        Returned Laptop (Received from Employee)
+                      </h5>
+                      <div style="display: flex; align-items: center; gap: 0.35rem;">
+                        <input type="checkbox" id="chk-include-returned" checked style="width: 15px; height: 15px; cursor: pointer; accent-color: var(--primary-color);">
+                        <label for="chk-include-returned" style="font-size: 0.78rem; font-weight: 600; cursor: pointer; color: var(--text-color); margin: 0;">Include in Agreement</label>
+                      </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                      <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label class="form-label" for="returned-model-input">Returned Laptop Model</label>
+                        <input type="text" id="returned-model-input" class="form-input" placeholder="e.g. ThinkPad T14 Gen 2" style="background-color: rgba(0, 0, 0, 0.15);">
+                      </div>
+                      <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label class="form-label" for="returned-serial-input">Returned Laptop Serial Number</label>
+                        <input type="text" id="returned-serial-input" class="form-input" placeholder="e.g. PF4CFLJN" style="background-color: rgba(0, 0, 0, 0.15);">
+                      </div>
+                    </div>
                   </div>
                 </div>
+
                 <div id="replacement-disabled-note" style="margin-top: 0.75rem; font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem;">
                   <i data-lucide="info" style="width: 14px; height: 14px;"></i>
                   <span>Please load data or start a manual entry to edit replacement details for the active record.</span>
