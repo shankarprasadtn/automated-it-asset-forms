@@ -963,6 +963,20 @@ function autoMapColumns() {
     if (!matchedHeader) {
       for (let h of appState.headers) {
         const normH = h.replace(/[\s_\-\/\\()]/g, '').toLowerCase();
+        
+        // Prevent false positive cross-matching between main laptop and replacement/returned laptop
+        const placeholderHasReplacement = normPlaceholder.includes('replacement') || normPlaceholder.includes('collected');
+        const headerHasReplacement = normH.includes('replacement') || normH.includes('collected');
+        if (placeholderHasReplacement !== headerHasReplacement) {
+          continue;
+        }
+        
+        const placeholderHasReturned = normPlaceholder.includes('returned') || normPlaceholder.includes('received') || normPlaceholder.includes('tsg');
+        const headerHasReturned = normH.includes('returned') || normH.includes('received') || normH.includes('tsg');
+        if (placeholderHasReturned !== headerHasReturned) {
+          continue;
+        }
+
         if (normH.includes(normPlaceholder) || normPlaceholder.includes(normH)) {
           matchedHeader = h;
           break;
@@ -970,27 +984,31 @@ function autoMapColumns() {
       }
     }
     
-    // 3. Try alias lists match
+    // 3. Try alias lists match and heuristic rules
     if (!matchedHeader) {
+      let type = '';
       let aliases = [];
-      if (normPlaceholder === 'replacementlaptopmodel') {
+      const isCollectedModelPlaceholder = ['replacementlaptopmodel', 'replacementmodel', 'collectedlaptopmodel', 'collectedbyusermodel', 'collectedlaptop', 'collectedbyuser'].includes(normPlaceholder);
+      const isCollectedSerialPlaceholder = ['replacementserialnumber', 'replacementserial', 'collectedlaptopserialnumber', 'collectedbyuserserialnumber', 'collectedserial', 'collectedbyserial'].includes(normPlaceholder);
+      const isReturnedModelPlaceholder = ['returnedlaptopmodel', 'returnedmodel', 'returnedtotsgmodel', 'returnedtotsg'].includes(normPlaceholder);
+      const isReturnedSerialPlaceholder = ['returnedlaptopserialnumber', 'returnedserialnumber', 'returnedlaptopserial', 'returnedserial', 'returnedtotsgserialnumber', 'returnedtotsgserial'].includes(normPlaceholder);
+
+      if (isCollectedModelPlaceholder) {
+        type = 'collected_model';
         aliases = ALIASES_COLLECTED_MODEL;
-      } else if (normPlaceholder === 'replacementserialnumber') {
+      } else if (isCollectedSerialPlaceholder) {
+        type = 'collected_serial';
         aliases = ALIASES_COLLECTED_SERIAL;
-      } else if (normPlaceholder === 'returnedlaptopmodel') {
+      } else if (isReturnedModelPlaceholder) {
+        type = 'returned_model';
         aliases = ALIASES_RETURNED_MODEL;
-      } else if (normPlaceholder === 'returnedlaptopserialnumber') {
+      } else if (isReturnedSerialPlaceholder) {
+        type = 'returned_serial';
         aliases = ALIASES_RETURNED_SERIAL;
       }
 
-      if (aliases.length > 0) {
-        for (let h of appState.headers) {
-          const normH = h.replace(/[\s_\-\/\\()]/g, '').toLowerCase();
-          if (aliases.includes(normH) || aliases.some(alias => normH.includes(alias) || alias.includes(normH))) {
-            matchedHeader = h;
-            break;
-          }
-        }
+      if (type) {
+        matchedHeader = findHeaderWithAliases(aliases, '', type);
       }
     }
     
