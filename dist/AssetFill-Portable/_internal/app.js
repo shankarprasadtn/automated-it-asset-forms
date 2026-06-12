@@ -1608,21 +1608,6 @@ function ensureActiveRecord() {
     appState.rows.push(newRow);
     appState.currentPreviewIndex = 0;
     
-    // Update basic stats so UI shows 1 record
-    elements.statRecordsCount.textContent = 1;
-    elements.dataCountBadge.textContent = 1;
-    elements.dataCountBadge.style.display = 'inline-block';
-    elements.bulkCountIndicator.textContent = 1;
-    
-    elements.btnPrintCurrent.disabled = false;
-    elements.btnDownloadMdCurrent.disabled = false;
-    elements.btnPrintAll.disabled = false;
-    elements.btnZipAll.disabled = false;
-    
-    elements.previewPagination.style.display = 'flex';
-    elements.totalRecordsNum.textContent = 1;
-    elements.currentRecordNum.textContent = 1;
-    
-    renderDataTable();
+    syncDataState();
   }
 }
