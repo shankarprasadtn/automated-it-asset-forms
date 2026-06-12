@@ -163,7 +163,7 @@ const DEFAULT_TEMPLATE = `<div style="text-align: center; margin-bottom: 1.25rem
     </tr>
     <tr style="display: [[Has_Collected]];">
       <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">3</td>
-      <td style="border: 1px solid #444; padding: 4px 6px;">Collected Laptop: <strong>{{Replacement_Laptop_Model}}</strong></td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">Collected by user: <strong>{{Replacement_Laptop_Model}}</strong></td>
       <td style="border: 1px solid #444; padding: 4px 6px;">{{Replacement_Serial_Number}}</td>
       <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
       <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
@@ -171,7 +171,7 @@ const DEFAULT_TEMPLATE = `<div style="text-align: center; margin-bottom: 1.25rem
     </tr>
     <tr style="display: [[Has_Returned]];">
       <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">4</td>
-      <td style="border: 1px solid #444; padding: 4px 6px;">Returned Laptop: <strong>{{Returned_Laptop_Model}}</strong></td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">Returned to TSG: <strong>{{Returned_Laptop_Model}}</strong></td>
       <td style="border: 1px solid #444; padding: 4px 6px;">{{Returned_Serial_Number}}</td>
       <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
       <td style="border: 1px solid #444; padding: 4px 6px;">RETURNED</td>
