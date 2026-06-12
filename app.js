@@ -27,11 +27,35 @@ const ALIASES_COLLECTED_SERIAL = ['replacementserialnumber', 'collectedlaptopser
 const ALIASES_RETURNED_MODEL = ['returnedlaptopmodel', 'returnedtotsgmodel', 'returnedtotsg', 'returnedlaptop', 'returnedmodel', 'returnedlaptopdesc'];
 const ALIASES_RETURNED_SERIAL = ['returnedlaptopserialnumber', 'returnedtotsgserialnumber', 'returnedtotsgserial', 'returnedlaptopserial', 'returnedserial', 'returnedtotsgserialno', 'returnedlaptopserialno'];
 
-function findHeaderWithAliases(possibleAliases, fallback) {
+function findHeaderWithAliases(possibleAliases, fallback, type) {
   for (let alias of possibleAliases) {
     const matched = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === alias);
     if (matched) return matched;
   }
+  
+  if (type) {
+    for (let h of appState.headers) {
+      const normH = h.replace(/[\s_\-\/\\()]/g, '').toLowerCase();
+      if (type === 'collected_model') {
+        const isCollected = normH.includes('collected') || normH.includes('replacement');
+        const isSerial = normH.includes('serial') || normH.includes('number') || normH.includes('no') || normH.includes('sn') || normH.includes('s/n') || normH.includes('sno') || normH.includes('slno');
+        if (isCollected && !isSerial) return h;
+      } else if (type === 'collected_serial') {
+        const isCollected = normH.includes('collected') || normH.includes('replacement');
+        const isSerial = normH.includes('serial') || normH.includes('number') || normH.includes('no') || normH.includes('sn') || normH.includes('s/n') || normH.includes('sno') || normH.includes('slno') || normH.includes('serialno');
+        if (isCollected && isSerial) return h;
+      } else if (type === 'returned_model') {
+        const isReturned = normH.includes('returned') || normH.includes('received') || normH.includes('tsg');
+        const isSerial = normH.includes('serial') || normH.includes('number') || normH.includes('no') || normH.includes('sn') || normH.includes('s/n') || normH.includes('sno') || normH.includes('slno');
+        if (isReturned && !isSerial) return h;
+      } else if (type === 'returned_serial') {
+        const isReturned = normH.includes('returned') || normH.includes('received') || normH.includes('tsg');
+        const isSerial = normH.includes('serial') || normH.includes('number') || normH.includes('no') || normH.includes('sn') || normH.includes('s/n') || normH.includes('sno') || normH.includes('slno') || normH.includes('serialno');
+        if (isReturned && isSerial) return h;
+      }
+    }
+  }
+  
   for (let alias of possibleAliases) {
     const matched = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase().includes(alias));
     if (matched) return matched;
@@ -1523,7 +1547,7 @@ function registerEvents() {
     repModelInput.addEventListener('input', (e) => {
       ensureActiveRecord();
       const record = appState.rows[appState.currentPreviewIndex];
-      const modelHeader = findHeaderWithAliases(ALIASES_COLLECTED_MODEL, 'Replacement Laptop Model');
+      const modelHeader = findHeaderWithAliases(ALIASES_COLLECTED_MODEL, 'Replacement Laptop Model', 'collected_model');
       record[modelHeader] = e.target.value;
       updatePreview();
       
@@ -1544,7 +1568,7 @@ function registerEvents() {
     repSerialInput.addEventListener('input', (e) => {
       ensureActiveRecord();
       const record = appState.rows[appState.currentPreviewIndex];
-      const serialHeader = findHeaderWithAliases(ALIASES_COLLECTED_SERIAL, 'Replacement Serial Number');
+      const serialHeader = findHeaderWithAliases(ALIASES_COLLECTED_SERIAL, 'Replacement Serial Number', 'collected_serial');
       record[serialHeader] = e.target.value;
       updatePreview();
       
@@ -1569,7 +1593,7 @@ function registerEvents() {
     retModelInput.addEventListener('input', (e) => {
       ensureActiveRecord();
       const record = appState.rows[appState.currentPreviewIndex];
-      const modelHeader = findHeaderWithAliases(ALIASES_RETURNED_MODEL, 'Returned Laptop Model');
+      const modelHeader = findHeaderWithAliases(ALIASES_RETURNED_MODEL, 'Returned Laptop Model', 'returned_model');
       record[modelHeader] = e.target.value;
       updatePreview();
       
@@ -1590,7 +1614,7 @@ function registerEvents() {
     retSerialInput.addEventListener('input', (e) => {
       ensureActiveRecord();
       const record = appState.rows[appState.currentPreviewIndex];
-      const serialHeader = findHeaderWithAliases(ALIASES_RETURNED_SERIAL, 'Returned Laptop Serial Number');
+      const serialHeader = findHeaderWithAliases(ALIASES_RETURNED_SERIAL, 'Returned Laptop Serial Number', 'returned_serial');
       record[serialHeader] = e.target.value;
       updatePreview();
       
@@ -1626,10 +1650,10 @@ function syncReplacementInputs() {
   
   if (appState.rows.length > 0) {
     const record = appState.rows[appState.currentPreviewIndex];
-    const modelHeader = findHeaderWithAliases(ALIASES_COLLECTED_MODEL, 'Replacement Laptop Model');
-    const serialHeader = findHeaderWithAliases(ALIASES_COLLECTED_SERIAL, 'Replacement Serial Number');
-    const retModelHeader = findHeaderWithAliases(ALIASES_RETURNED_MODEL, 'Returned Laptop Model');
-    const retSerialHeader = findHeaderWithAliases(ALIASES_RETURNED_SERIAL, 'Returned Laptop Serial Number');
+    const modelHeader = findHeaderWithAliases(ALIASES_COLLECTED_MODEL, 'Replacement Laptop Model', 'collected_model');
+    const serialHeader = findHeaderWithAliases(ALIASES_COLLECTED_SERIAL, 'Replacement Serial Number', 'collected_serial');
+    const retModelHeader = findHeaderWithAliases(ALIASES_RETURNED_MODEL, 'Returned Laptop Model', 'returned_model');
+    const retSerialHeader = findHeaderWithAliases(ALIASES_RETURNED_SERIAL, 'Returned Laptop Serial Number', 'returned_serial');
     
     modelInput.value = record[modelHeader] || '';
     serialInput.value = record[serialHeader] || '';
