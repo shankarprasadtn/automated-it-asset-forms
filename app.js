@@ -21,6 +21,25 @@ const FROZEN_HEADERS = [
 ];
 
 // Default Agreement Template (Markdown)
+// Alias configurations for collected (replacement) and returned laptop fields to support arbitrary user Excel headers
+const ALIASES_COLLECTED_MODEL = ['replacementlaptopmodel', 'collectedlaptopmodel', 'collectedbyusermodel', 'collectedlaptop', 'collectedbyuser', 'replacementmodel', 'replacelaptopmodel', 'collectedlaptopdesc'];
+const ALIASES_COLLECTED_SERIAL = ['replacementserialnumber', 'collectedlaptopserialnumber', 'collectedbyuserserialnumber', 'collectedserial', 'collectedbyserial', 'replacementserial', 'replacelaptopserial', 'collectedlaptopserialno'];
+const ALIASES_RETURNED_MODEL = ['returnedlaptopmodel', 'returnedtotsgmodel', 'returnedtotsg', 'returnedlaptop', 'returnedmodel', 'returnedlaptopdesc'];
+const ALIASES_RETURNED_SERIAL = ['returnedlaptopserialnumber', 'returnedtotsgserialnumber', 'returnedtotsgserial', 'returnedlaptopserial', 'returnedserial', 'returnedtotsgserialno', 'returnedlaptopserialno'];
+
+function findHeaderWithAliases(possibleAliases, fallback) {
+  for (let alias of possibleAliases) {
+    const matched = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === alias);
+    if (matched) return matched;
+  }
+  for (let alias of possibleAliases) {
+    const matched = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase().includes(alias));
+    if (matched) return matched;
+  }
+  return fallback;
+}
+
+// Default Agreement Template (Markdown)
 const DEFAULT_TEMPLATE = `<div style="text-align: center; margin-bottom: 1.25rem;">
   <img src="ups_logo.svg" alt="UPS Logo" style="height: 58px; width: auto; margin-bottom: 0.25rem; display: block; margin-left: auto; margin-right: auto;">
   <h2 style="margin: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #111;">RECEIPT FOR COMPANY PROPERTY</h2>
@@ -540,32 +559,50 @@ function switchTab(tabId) {
 // Data Parsing
 function handleDataParsed(headers, rows) {
   if (headers.length > 0) {
-    if (!headers.includes("Replacement Laptop Model")) {
+    const normalizedHeaders = headers.map(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase());
+    
+    // Check if we have any collected model header
+    const hasCollectedModel = ALIASES_COLLECTED_MODEL.some(alias => normalizedHeaders.includes(alias));
+    if (!hasCollectedModel && !headers.includes("Replacement Laptop Model")) {
       headers.push("Replacement Laptop Model");
     }
-    if (!headers.includes("Replacement Serial Number")) {
+    
+    // Check if we have any collected serial header
+    const hasCollectedSerial = ALIASES_COLLECTED_SERIAL.some(alias => normalizedHeaders.includes(alias));
+    if (!hasCollectedSerial && !headers.includes("Replacement Serial Number")) {
       headers.push("Replacement Serial Number");
     }
-    if (!headers.includes("Returned Laptop Model")) {
+    
+    // Check if we have any returned model header
+    const hasReturnedModel = ALIASES_RETURNED_MODEL.some(alias => normalizedHeaders.includes(alias));
+    if (!hasReturnedModel && !headers.includes("Returned Laptop Model")) {
       headers.push("Returned Laptop Model");
     }
-    if (!headers.includes("Returned Laptop Serial Number")) {
+    
+    // Check if we have any returned serial header
+    const hasReturnedSerial = ALIASES_RETURNED_SERIAL.some(alias => normalizedHeaders.includes(alias));
+    if (!hasReturnedSerial && !headers.includes("Returned Laptop Serial Number")) {
       headers.push("Returned Laptop Serial Number");
     }
     
     // Also ensure every row has these keys
     rows.forEach(row => {
-      if (row["Replacement Laptop Model"] === undefined) {
-        row["Replacement Laptop Model"] = "";
+      const modelHeader = headers.find(h => ALIASES_COLLECTED_MODEL.includes(h.replace(/[\s_\-\/\\()]/g, '').toLowerCase())) || "Replacement Laptop Model";
+      const serialHeader = headers.find(h => ALIASES_COLLECTED_SERIAL.includes(h.replace(/[\s_\-\/\\()]/g, '').toLowerCase())) || "Replacement Serial Number";
+      const retModelHeader = headers.find(h => ALIASES_RETURNED_MODEL.includes(h.replace(/[\s_\-\/\\()]/g, '').toLowerCase())) || "Returned Laptop Model";
+      const retSerialHeader = headers.find(h => ALIASES_RETURNED_SERIAL.includes(h.replace(/[\s_\-\/\\()]/g, '').toLowerCase())) || "Returned Laptop Serial Number";
+      
+      if (row[modelHeader] === undefined) {
+        row[modelHeader] = "";
       }
-      if (row["Replacement Serial Number"] === undefined) {
-        row["Replacement Serial Number"] = "";
+      if (row[serialHeader] === undefined) {
+        row[serialHeader] = "";
       }
-      if (row["Returned Laptop Model"] === undefined) {
-        row["Returned Laptop Model"] = "";
+      if (row[retModelHeader] === undefined) {
+        row[retModelHeader] = "";
       }
-      if (row["Returned Laptop Serial Number"] === undefined) {
-        row["Returned Laptop Serial Number"] = "";
+      if (row[retSerialHeader] === undefined) {
+        row[retSerialHeader] = "";
       }
     });
   }
@@ -905,6 +942,30 @@ function autoMapColumns() {
         if (normH.includes(normPlaceholder) || normPlaceholder.includes(normH)) {
           matchedHeader = h;
           break;
+        }
+      }
+    }
+    
+    // 3. Try alias lists match
+    if (!matchedHeader) {
+      let aliases = [];
+      if (normPlaceholder === 'replacementlaptopmodel') {
+        aliases = ALIASES_COLLECTED_MODEL;
+      } else if (normPlaceholder === 'replacementserialnumber') {
+        aliases = ALIASES_COLLECTED_SERIAL;
+      } else if (normPlaceholder === 'returnedlaptopmodel') {
+        aliases = ALIASES_RETURNED_MODEL;
+      } else if (normPlaceholder === 'returnedlaptopserialnumber') {
+        aliases = ALIASES_RETURNED_SERIAL;
+      }
+
+      if (aliases.length > 0) {
+        for (let h of appState.headers) {
+          const normH = h.replace(/[\s_\-\/\\()]/g, '').toLowerCase();
+          if (aliases.includes(normH) || aliases.some(alias => normH.includes(alias) || alias.includes(normH))) {
+            matchedHeader = h;
+            break;
+          }
         }
       }
     }
@@ -1462,7 +1523,7 @@ function registerEvents() {
     repModelInput.addEventListener('input', (e) => {
       ensureActiveRecord();
       const record = appState.rows[appState.currentPreviewIndex];
-      const modelHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'replacementlaptopmodel') || 'Replacement Laptop Model';
+      const modelHeader = findHeaderWithAliases(ALIASES_COLLECTED_MODEL, 'Replacement Laptop Model');
       record[modelHeader] = e.target.value;
       updatePreview();
       
@@ -1483,7 +1544,7 @@ function registerEvents() {
     repSerialInput.addEventListener('input', (e) => {
       ensureActiveRecord();
       const record = appState.rows[appState.currentPreviewIndex];
-      const serialHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'replacementserialnumber') || 'Replacement Serial Number';
+      const serialHeader = findHeaderWithAliases(ALIASES_COLLECTED_SERIAL, 'Replacement Serial Number');
       record[serialHeader] = e.target.value;
       updatePreview();
       
@@ -1508,7 +1569,7 @@ function registerEvents() {
     retModelInput.addEventListener('input', (e) => {
       ensureActiveRecord();
       const record = appState.rows[appState.currentPreviewIndex];
-      const modelHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'returnedlaptopmodel') || 'Returned Laptop Model';
+      const modelHeader = findHeaderWithAliases(ALIASES_RETURNED_MODEL, 'Returned Laptop Model');
       record[modelHeader] = e.target.value;
       updatePreview();
       
@@ -1529,7 +1590,7 @@ function registerEvents() {
     retSerialInput.addEventListener('input', (e) => {
       ensureActiveRecord();
       const record = appState.rows[appState.currentPreviewIndex];
-      const serialHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'returnedlaptopserialnumber') || 'Returned Laptop Serial Number';
+      const serialHeader = findHeaderWithAliases(ALIASES_RETURNED_SERIAL, 'Returned Laptop Serial Number');
       record[serialHeader] = e.target.value;
       updatePreview();
       
@@ -1565,10 +1626,10 @@ function syncReplacementInputs() {
   
   if (appState.rows.length > 0) {
     const record = appState.rows[appState.currentPreviewIndex];
-    const modelHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'replacementlaptopmodel') || 'Replacement Laptop Model';
-    const serialHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'replacementserialnumber') || 'Replacement Serial Number';
-    const retModelHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'returnedlaptopmodel') || 'Returned Laptop Model';
-    const retSerialHeader = appState.headers.find(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase() === 'returnedlaptopserialnumber') || 'Returned Laptop Serial Number';
+    const modelHeader = findHeaderWithAliases(ALIASES_COLLECTED_MODEL, 'Replacement Laptop Model');
+    const serialHeader = findHeaderWithAliases(ALIASES_COLLECTED_SERIAL, 'Replacement Serial Number');
+    const retModelHeader = findHeaderWithAliases(ALIASES_RETURNED_MODEL, 'Returned Laptop Model');
+    const retSerialHeader = findHeaderWithAliases(ALIASES_RETURNED_SERIAL, 'Returned Laptop Serial Number');
     
     modelInput.value = record[modelHeader] || '';
     serialInput.value = record[serialHeader] || '';
