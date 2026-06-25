@@ -1485,6 +1485,14 @@ function renderDocumentHTML(recordIndex) {
       const mappedHeader = appState.mapping[placeholder];
       value = mappedHeader !== undefined && record[mappedHeader] !== undefined ? String(record[mappedHeader]).trim() : '';
       
+      // Clear generic "desktop" or "laptop" values to avoid repetition in labels
+      if (normPlaceholder === 'desktopmodel' && (value.toLowerCase() === 'desktop' || value.toLowerCase() === 'desktop model')) {
+        value = '';
+      }
+      if (normPlaceholder === 'laptopmodel' && (value.toLowerCase() === 'laptop' || value.toLowerCase() === 'laptop model')) {
+        value = '';
+      }
+      
       // Fallback for empty date fields to Today's Date (DD/MM/YYYY format)
       if (value === '' && (normPlaceholder.includes('date') || normPlaceholder === 'day')) {
         value = getFormattedTodayDate();
