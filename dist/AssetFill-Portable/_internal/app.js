@@ -16,11 +16,12 @@ let appState = {
 // Default Agreement Template (Markdown)
 // Frozen Headers for data parsing support when user pastes data without header row
 const FROZEN_HEADERS = [
-  "S.NO", "Laptop Model", "Desktop Model", "Serial Number", "PC Name", "User Name",
-  "AD ID", "Employee ID", "Dept", "Manager", "Directors", "Cubicle Number",
-  "H/O Date", "Headset", "Docking", "Mouse", "Keyboard",
+  "S.NO", "Laptop Model", "Serial Number", "PC Name", "User Name",
+  "AD ID", "Employee ID", "Dept", "Manager", "Directors",
+  "H/O Date", "Headset", "Docking", "Mouse",
   "Replacement Laptop Model", "Replacement Serial Number",
-  "Returned Laptop Model", "Returned Laptop Serial Number"
+  "Returned Laptop Model", "Returned Laptop Serial Number",
+  "Desktop Model", "Cubicle Number", "Keyboard"
 ];
 
 // Default Agreement Template (Markdown)
@@ -1407,6 +1408,12 @@ function autoMapColumns() {
           return norm === 'desktopmodel' || norm === 'desktop' || norm === 'model' || norm === 'itemdescription';
         });
         if (desktopModelHeader) matchedHeader = desktopModelHeader;
+      } else if (normPlaceholder === 'cubiclenumber') {
+        const dockingHeader = appState.headers.find(h => {
+          const norm = h.replace(/[\s_\-\/\\()]/g, '').toLowerCase();
+          return norm === 'docking';
+        });
+        if (dockingHeader) matchedHeader = dockingHeader;
       }
     }
     
