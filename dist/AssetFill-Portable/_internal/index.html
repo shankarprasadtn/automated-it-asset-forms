@@ -107,6 +107,10 @@
             <div class="card-header">
               <h3>Template Editor (Markdown / Text)</h3>
               <div class="card-actions">
+                <select id="asset-type-select" style="background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid rgba(255, 255, 255, 0.15); padding: 4px 10px; border-radius: 4px; font-size: 0.78rem; font-weight: 600; cursor: pointer; outline: none; margin-right: 0.5rem; height: 32px;">
+                  <option value="laptop" style="background: #252526; color: #fff;">Laptop Template</option>
+                  <option value="desktop" style="background: #252526; color: #fff;">Desktop Template</option>
+                </select>
                 <input type="file" id="template-file-input" accept=".docx,.pdf,.txt,.md" style="display: none;">
                 <button class="btn btn-secondary btn-sm" id="btn-upload-template" title="Import template from DOCX, PDF, TXT or Markdown file">
                   <i data-lucide="upload"></i> Import Template (Docx/PDF)
