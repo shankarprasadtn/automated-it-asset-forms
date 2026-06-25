@@ -10,7 +10,8 @@ let appState = {
   currentPreviewIndex: 0,
   assetType: 'laptop',
   laptopTemplate: '',
-  desktopTemplate: ''
+  desktopTemplate: '',
+  macbookTemplate: ''
 };
 
 // Default Agreement Template (Markdown)
@@ -620,6 +621,222 @@ const DEFAULT_DESKTOP_TEMPLATE = `<div style="text-align: center; margin-bottom:
   </tbody>
 </table>`;
 
+// Default MacBook Agreement Template
+const DEFAULT_MACBOOK_TEMPLATE = `<div style="text-align: center; margin-bottom: 1.25rem;">
+  <img src="ups_logo.svg" alt="UPS Logo" style="height: 58px; width: auto; margin-bottom: 0.25rem; display: block; margin-left: auto; margin-right: auto;">
+  <h2 style="margin: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #111;">RECEIPT FOR COMPANY PROPERTY</h2>
+  <h3 style="margin: 0; font-size: 0.82rem; font-weight: 600; font-style: italic; color: #555;">[Technology Support Group, Region]</h3>
+</div>
+
+<table style="width: 100%; border: none; margin-bottom: 1rem; font-size: 0.82rem; border-collapse: collapse;">
+  <tr style="border: none;">
+    <td style="width: 60%; border: none; padding: 4px 0; color: #000;"><strong>Employee Name:</strong> {{User_Name}}</td>
+    <td style="width: 40%; border: none; padding: 4px 0; color: #000;"><strong>Employee ID:</strong> {{Employee_ID}}</td>
+  </tr>
+  <tr style="border: none;">
+    <td style="width: 60%; border: none; padding: 4px 0; color: #000;"><strong>AD ID:</strong> {{AD_ID}}</td>
+    <td style="width: 40%; border: none; padding: 4px 0; color: #000;"><strong>Department:</strong> {{Dept}}</td>
+  </tr>
+  <tr style="border: none;">
+    <td style="width: 60%; border: none; padding: 4px 0; color: #000;"><strong>Manager:</strong> {{Manager}}</td>
+    <td style="width: 40%; border: none; padding: 4px 0; color: #000;">&nbsp;</td>
+  </tr>
+</table>
+
+<p style="font-size: 0.82rem; line-height: 1.55; color: #111; margin-bottom: 1rem;">
+  I have read and understood and will fully comply with the UPS policies on Information Use and Security Compliance (IUSC) and the <em><strong>Guidelines of Usage</strong></em> set out below, and I hereby acknowledge receipt of the company property and its related accessories as outlined in the attached Inventory list (the "Property").
+</p>
+
+<div style="margin-top: 1.25rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; font-size: 0.78rem; color: #000; line-height: 1.4;">
+  <div style="width: 45%;">
+    <p>_____________________________________</p>
+    <p><strong>On Behalf of United Parcel Service Pvt Ltd</strong></p>
+    <p style="margin-top: 0.35rem;">Date: {{H_O_Date}}</p>
+  </div>
+  <div style="width: 45%;">
+    <p>_____________________________________</p>
+    <p><strong>Employee Signature</strong></p>
+    <p style="margin-top: 0.35rem;">Date: {{H_O_Date}}</p>
+  </div>
+</div>
+
+<hr style="border: none; border-top: 1px dashed #bbb; margin: 1rem 0;">
+
+<h3 style="font-size: 0.95rem; font-weight: 700; border-bottom: 1px solid #333; padding-bottom: 2px; margin-bottom: 0.85rem; text-transform: uppercase;">Guidelines of Usage</h3>
+
+<h4 style="font-size: 0.82rem; font-weight: 700; margin: 0.6rem 0 0.3rem 0; color: #222;">General Use & Maintenance</h4>
+<ul style="font-size: 0.78rem; list-style-type: none; padding-left: 0; margin-bottom: 0.85rem; line-height: 1.45;">
+  <li style="margin-bottom: 0.4rem; padding-left: 1.25rem; text-indent: -1.25rem;">
+    <strong>a)</strong> I agree to maintain the Property in good working condition and to return it in similar condition upon the termination of my employment with company or as and when requested by my supervisor. In addition, if I no longer have a business need, or the Company deems that I no longer need any of the item(s), I will report this information to my supervisor.
+  </li>
+  <li style="margin-bottom: 0.4rem; padding-left: 1.25rem; text-indent: -1.25rem;">
+    <strong>b)</strong> I agree to use the equipment for its intended business purpose only, unless prior approval is granted otherwise.
+  </li>
+  <li style="margin-bottom: 0.4rem; padding-left: 1.25rem; text-indent: -1.25rem;">
+    <strong>c)</strong> Storage, installation/loading of illegal and/or unapproved hardware or software is strictly prohibited. I will be liable for any disciplinary actions and other recourse as the law provides.
+  </li>
+</ul>
+
+<h4 style="font-size: 0.82rem; font-weight: 700; margin: 0.6rem 0 0.3rem 0; color: #222;">Loss / Damage</h4>
+<ul style="font-size: 0.78rem; list-style-type: none; padding-left: 0; margin-bottom: 0.85rem; line-height: 1.45;">
+  <li style="margin-bottom: 0.4rem; padding-left: 1.25rem; text-indent: -1.25rem;">
+    <strong>d)</strong> I understand that the risk of loss or damage of this asset remains with me to the extent permitted by local law, with the exception of events of <em>force majeure</em>¹, or if I am able to provide reasonable proof to the Company that I have exercised reasonable efforts to avoid such loss or damage.
+  </li>
+</ul>
+
+<p style="font-size: 0.78rem; line-height: 1.45; color: #111; margin-bottom: 1rem;">
+  I will ensure that the Company is notified immediately, or within 24 hours, if any of the item(s) are damaged, destroyed or lost. I understand that I am obligated to submit a report detailing the circumstances pertaining to the loss/damage of the Property, inclusive of a police report where the loss/damage occurred outside company premises (unless the damage is not attributable to my own negligence, misconduct or negligent omission in which case a police report may not be required).
+</p>
+
+<div style="margin-top: 0.75rem; font-size: 0.62rem; color: #666; border-top: 1px solid #ddd; padding-top: 0.35rem; line-height: 1.3;">
+  ¹ 'Events of "force majeure" include but are not limited to : reasons of acts of God, riots, wars, accidents of transportation, any event outside my control and/or other similar causes ordinarily referred to as force majeure events.
+</div>
+
+<div class="page-break"></div>
+
+<ul style="font-size: 0.78rem; list-style-type: none; padding-left: 0; margin-top: 0.65rem; margin-bottom: 0.85rem; line-height: 1.45;">
+  <li style="margin-bottom: 0.45rem; padding-left: 1.25rem; text-indent: -1.25rem;">
+    <strong>e)</strong> In the event that the Property is damaged through by any reason attributable to me including without limitation by reason of my negligence, misconduct or negligent omission, the repair cost shall be borne by me to the extent permitted by local law.
+  </li>
+  <li style="margin-bottom: 0.45rem; padding-left: 1.25rem; text-indent: -1.25rem;">
+    <strong>f)</strong> If the Property, or any part(s) of it is lost by reason attributable to me, including without limitation by reason of my negligence, misconduct or negligent omission, regardless of whether the loss occurred inside or outside company premises, I shall be responsible to replace the Property with equipment of a similar make and value.
+  </li>
+  <li style="margin-bottom: 0.45rem; padding-left: 1.25rem; text-indent: -1.25rem;">
+    <strong>g)</strong> I understand and acknowledge that the course of action to be taken in Guidelines (f) and/or (g) will be determined by UPS and will depend on the findings of the conducted investigation.
+  </li>
+</ul>
+
+<h4 style="font-size: 0.82rem; font-weight: 700; margin: 0.75rem 0 0.25rem 0; color: #222; text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 1px;">Security</h4>
+<ul style="font-size: 0.78rem; list-style-type: none; padding-left: 0; margin-bottom: 0.85rem; line-height: 1.45;">
+  <li style="margin-bottom: 0.45rem; padding-left: 1.25rem; text-indent: -1.25rem;">
+    <strong>h)</strong> It is my responsibility to ensure that my system is virus free and constantly updated with the latest virus scan. All external files/email are to be scanned before use.
+  </li>
+  <li style="margin-bottom: 0.45rem; padding-left: 1.25rem; text-indent: -1.25rem;">
+    <strong>i)</strong> I understand and acknowledge that the company has the legal right and authority to conduct unannounced inspection of all hardware and software. I understand that I must produce the Property upon demand and without delay in the event of such a request by the company.
+  </li>
+  <li style="margin-bottom: 0.45rem; padding-left: 1.25rem; text-indent: -1.25rem;">
+    <strong>j)</strong> Lending of this Property or parts of it to person(s) other than the above named without prior consent of the Head of Department is prohibited.
+  </li>
+  <li style="margin-bottom: 0.45rem; padding-left: 1.25rem; text-indent: -1.25rem;">
+    <strong>k)</strong> I acknowledge and agree that the Company reserves its legal right and authority to upgrade, transfer, replace, sell, retain, and confiscate the Property at all times and at any time without notice at the company's sole and absolute discretion.
+  </li>
+</ul>
+
+<p style="font-size: 0.78rem; line-height: 1.45; color: #111; margin-bottom: 1rem;">
+  The company reserves the right to amend its policies relating to my use of the Equipment and software on the equipment at its sole discretion at any time without prior notice to me.
+</p>
+
+<div style="text-align: center; margin: 1rem 0 0.5rem 0; font-weight: 700; font-size: 0.8rem; color: #000; letter-spacing: 1px;">
+  *********************************** Equipment Inventory Listing
+</div>
+
+<table style="width: 100%; border-collapse: collapse; font-size: 0.7rem; border: 1px solid #444;">
+  <thead>
+    <tr style="background-color: #f5f5f5;">
+      <th style="border: 1px solid #444; padding: 4px 6px; text-align: center; width: 6%;">SN</th>
+      <th style="border: 1px solid #444; padding: 4px 6px; text-align: left; width: 34%;">ITEM DESCRIPTION</th>
+      <th style="border: 1px solid #444; padding: 4px 6px; text-align: left; width: 28%;">SERIAL NO.</th>
+      <th style="border: 1px solid #444; padding: 4px 6px; text-align: center; width: 6%;">Qty</th>
+      <th style="border: 1px solid #444; padding: 4px 6px; text-align: left; width: 12%;">CONDITION</th>
+      <th style="border: 1px solid #444; padding: 4px 6px; text-align: left; width: 14%;">REMARKS</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Main Equipment Section -->
+    <tr style="background-color: #eee; font-weight: 700;">
+      <td colspan="6" style="border: 1px solid #444; padding: 3px 6px;">Main Equipment</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">MacBook: <strong>{{MacBook_Model}}</strong></td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">{{Serial_Number}}</td>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;"></td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">2</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">HOST Name / PC Name</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">{{PC_Name}}</td>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;"></td>
+    </tr>
+    <tr style="display: [[Has_Collected]];">
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">3</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">Collected by user: <strong>{{Replacement_Laptop_Model}}</strong></td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">{{Replacement_Serial_Number}}</td>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">COLLECTED</td>
+    </tr>
+    <tr style="display: [[Has_Returned]];">
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">4</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">Returned to TSG: <strong>{{Returned_Laptop_Model}}</strong></td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">{{Returned_Serial_Number}}</td>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">RETURNED</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">RETURNED</td>
+    </tr>
+    <!-- Accessories Section -->
+    <tr style="background-color: #eee; font-weight: 700;">
+      <td colspan="6" style="border: 1px solid #444; padding: 3px 6px;">Accessories</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">USB-C POWER ADAPTER</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">-</td>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;"></td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">2</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">USB-C CHARGING CABLE</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">-</td>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;"></td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">3</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">CARRY CASE / SLEEVE</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">-</td>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;"></td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">4</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">Mouse</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">{{Mouse}}</td>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;"></td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">5</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">Headset</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">{{Headset}}</td>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;"></td>
+    </tr>
+    <!-- Software Section -->
+    <tr style="background-color: #eee; font-weight: 700;">
+      <td colspan="6" style="border: 1px solid #444; padding: 3px 6px;">Software</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">macOS Standard Image</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">Pre-installed</td>
+      <td style="border: 1px solid #444; padding: 4px 6px; text-align: center;">1</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;">NEW</td>
+      <td style="border: 1px solid #444; padding: 4px 6px;"></td>
+    </tr>
+  </tbody>
+</table>`;
+
 // Sample Data for Testing (Based on User's Excel columns)
 const SAMPLE_DATA = [
   {
@@ -779,9 +996,12 @@ function loadDefaultTemplate() {
   if (appState.assetType === 'laptop') {
     appState.laptopTemplate = DEFAULT_TEMPLATE;
     appState.template = DEFAULT_TEMPLATE;
-  } else {
+  } else if (appState.assetType === 'desktop') {
     appState.desktopTemplate = DEFAULT_DESKTOP_TEMPLATE;
     appState.template = DEFAULT_DESKTOP_TEMPLATE;
+  } else if (appState.assetType === 'macbook') {
+    appState.macbookTemplate = DEFAULT_MACBOOK_TEMPLATE;
+    appState.template = DEFAULT_MACBOOK_TEMPLATE;
   }
   elements.templateEditor.value = appState.template;
   parseTemplatePlaceholders();
@@ -793,8 +1013,10 @@ function parseTemplatePlaceholders() {
   
   if (appState.assetType === 'laptop') {
     appState.laptopTemplate = text;
-  } else {
+  } else if (appState.assetType === 'desktop') {
     appState.desktopTemplate = text;
+  } else if (appState.assetType === 'macbook') {
+    appState.macbookTemplate = text;
   }
   
   // Regex to extract placeholders {{placeholder_name}}
@@ -1394,20 +1616,26 @@ function autoMapColumns() {
       }
     }
     
-    // 4. Try fallbacks for Laptop_Model and Desktop_Model cross-matching
+    // 4. Try fallbacks for Laptop_Model, Desktop_Model and MacBook_Model cross-matching
     if (!matchedHeader) {
       if (normPlaceholder === 'desktopmodel') {
         const laptopModelHeader = appState.headers.find(h => {
           const norm = h.replace(/[\s_\-\/\\()]/g, '').toLowerCase();
-          return norm === 'laptopmodel' || norm === 'model' || norm === 'itemdescription';
+          return norm === 'laptopmodel' || norm === 'model' || norm === 'itemdescription' || norm === 'macbookmodel';
         });
         if (laptopModelHeader) matchedHeader = laptopModelHeader;
       } else if (normPlaceholder === 'laptopmodel') {
         const desktopModelHeader = appState.headers.find(h => {
           const norm = h.replace(/[\s_\-\/\\()]/g, '').toLowerCase();
-          return norm === 'desktopmodel' || norm === 'desktop' || norm === 'model' || norm === 'itemdescription';
+          return norm === 'desktopmodel' || norm === 'desktop' || norm === 'model' || norm === 'itemdescription' || norm === 'macbookmodel';
         });
         if (desktopModelHeader) matchedHeader = desktopModelHeader;
+      } else if (normPlaceholder === 'macbookmodel') {
+        const laptopModelHeader = appState.headers.find(h => {
+          const norm = h.replace(/[\s_\-\/\\()]/g, '').toLowerCase();
+          return norm === 'laptopmodel' || norm === 'model' || norm === 'itemdescription' || norm === 'desktopmodel';
+        });
+        if (laptopModelHeader) matchedHeader = laptopModelHeader;
       } else if (normPlaceholder === 'cubiclenumber') {
         const dockingHeader = appState.headers.find(h => {
           const norm = h.replace(/[\s_\-\/\\()]/g, '').toLowerCase();
@@ -1485,11 +1713,14 @@ function renderDocumentHTML(recordIndex) {
       const mappedHeader = appState.mapping[placeholder];
       value = mappedHeader !== undefined && record[mappedHeader] !== undefined ? String(record[mappedHeader]).trim() : '';
       
-      // Clear generic "desktop" or "laptop" values to avoid repetition in labels
+      // Clear generic "desktop", "laptop", or "macbook" values to avoid repetition in labels
       if (normPlaceholder === 'desktopmodel' && (value.toLowerCase() === 'desktop' || value.toLowerCase() === 'desktop model')) {
         value = '';
       }
       if (normPlaceholder === 'laptopmodel' && (value.toLowerCase() === 'laptop' || value.toLowerCase() === 'laptop model')) {
+        value = '';
+      }
+      if (normPlaceholder === 'macbookmodel' && (value.toLowerCase() === 'macbook' || value.toLowerCase() === 'mac book' || value.toLowerCase() === 'macbook model')) {
         value = '';
       }
       
@@ -1911,11 +2142,16 @@ function registerEvents() {
           appState.laptopTemplate = DEFAULT_TEMPLATE;
         }
         appState.template = appState.laptopTemplate;
-      } else {
+      } else if (appState.assetType === 'desktop') {
         if (!appState.desktopTemplate) {
           appState.desktopTemplate = DEFAULT_DESKTOP_TEMPLATE;
         }
         appState.template = appState.desktopTemplate;
+      } else if (appState.assetType === 'macbook') {
+        if (!appState.macbookTemplate) {
+          appState.macbookTemplate = DEFAULT_MACBOOK_TEMPLATE;
+        }
+        appState.template = appState.macbookTemplate;
       }
       
       elements.templateEditor.value = appState.template;
