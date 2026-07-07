@@ -1637,11 +1637,19 @@ function autoMapColumns() {
         });
         if (laptopModelHeader) matchedHeader = laptopModelHeader;
       } else if (normPlaceholder === 'cubiclenumber') {
-        const dockingHeader = appState.headers.find(h => {
+        const deskHeader = appState.headers.find(h => {
           const norm = h.replace(/[\s_\-\/\\()]/g, '').toLowerCase();
-          return norm === 'docking';
+          return norm === 'deskno' || norm === 'desk' || norm === 'desknumber';
         });
-        if (dockingHeader) matchedHeader = dockingHeader;
+        if (deskHeader) {
+          matchedHeader = deskHeader;
+        } else {
+          const dockingHeader = appState.headers.find(h => {
+            const norm = h.replace(/[\s_\-\/\\()]/g, '').toLowerCase();
+            return norm === 'docking';
+          });
+          if (dockingHeader) matchedHeader = dockingHeader;
+        }
       }
     }
     
