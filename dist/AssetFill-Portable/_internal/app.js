@@ -25,6 +25,32 @@ const FROZEN_HEADERS = [
   "Desktop Model", "Cubicle Number", "Keyboard"
 ];
 
+function getFrozenHeaders() {
+  if (appState.assetType === 'desktop') {
+    return [
+      "S.NO", "Laptop Model", "Serial Number", "PC Name", "User Name",
+      "AD ID", "Employee ID", "Dept", "Manager", "DESK NO",
+      "H/O Date", "Headset", "Docking", "Mouse", "Keyboard",
+      "Deskphone", "Monitor for WFH", "Remarks", "Date of exit"
+    ];
+  } else if (appState.assetType === 'macbook') {
+    return [
+      "S.NO", "MacBook Model", "Serial Number", "PC Name", "User Name",
+      "AD ID", "Employee ID", "Dept", "Manager", "Directors",
+      "H/O Date", "Headset", "Mouse", "Keyboard"
+    ];
+  } else {
+    return [
+      "S.NO", "Laptop Model", "Serial Number", "PC Name", "User Name",
+      "AD ID", "Employee ID", "Dept", "Manager", "Directors",
+      "H/O Date", "Headset", "Docking", "Mouse",
+      "Replacement Laptop Model", "Replacement Serial Number",
+      "Returned Laptop Model", "Returned Laptop Serial Number",
+      "Desktop Model", "Cubicle Number", "Keyboard"
+    ];
+  }
+}
+
 // Default Agreement Template (Markdown)
 // Alias configurations for collected (replacement) and returned laptop fields to support arbitrary user Excel headers
 const ALIASES_COLLECTED_MODEL = ['replacementlaptopmodel', 'collectedlaptopmodel', 'collectedbyusermodel', 'collectedlaptopdesc', 'replacementmodel', 'replacelaptopmodel'];
@@ -1327,7 +1353,7 @@ function parsePastedTSV() {
     
     // Detect if first line contains header keywords vs data by checking matching headers count
     let matchingHeaderCount = 0;
-    const normalizedFrozen = FROZEN_HEADERS.map(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase());
+    const normalizedFrozen = getFrozenHeaders().map(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase());
     
     firstLineCells.forEach(cell => {
       const normCell = cell.replace(/[\s_\-\/\\()]/g, '').toLowerCase();
@@ -1346,7 +1372,7 @@ function parsePastedTSV() {
       headers = firstLineCells.filter(h => h !== '');
       startLineIndex = 1;
     } else {
-      headers = [...FROZEN_HEADERS];
+      headers = [...getFrozenHeaders()];
       startLineIndex = 0;
     }
     
@@ -1412,7 +1438,7 @@ function processExcelFile(file) {
       
       // Detect if first row contains header keywords vs data by checking matching headers count
       let matchingHeaderCount = 0;
-      const normalizedFrozen = FROZEN_HEADERS.map(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase());
+      const normalizedFrozen = getFrozenHeaders().map(h => h.replace(/[\s_\-\/\\()]/g, '').toLowerCase());
       
       firstRowCells.forEach(cell => {
         const normCell = cell.replace(/[\s_\-\/\\()]/g, '').toLowerCase();
@@ -1431,7 +1457,7 @@ function processExcelFile(file) {
         headers = firstRowCells.filter(h => h !== '');
         startRowIndex = 1;
       } else {
-        headers = [...FROZEN_HEADERS];
+        headers = [...getFrozenHeaders()];
         startRowIndex = 0;
       }
       
@@ -2036,7 +2062,7 @@ function renderManualEditForm() {
 function addNewRecord() {
   // Determine headers if none are loaded
   if (appState.headers.length === 0) {
-    appState.headers = [...FROZEN_HEADERS];
+    appState.headers = [...getFrozenHeaders()];
   }
   
   const newRow = {};
@@ -2084,7 +2110,7 @@ function deleteCurrentRecord() {
 }
 
 function startManualEntry() {
-  appState.headers = [...FROZEN_HEADERS];
+  appState.headers = [...getFrozenHeaders()];
   appState.rows = [];
   addNewRecord();
 }
@@ -2377,7 +2403,7 @@ function updateDataTablePreviewCell(header, value) {
 
 function ensureActiveRecord() {
   if (appState.rows.length === 0) {
-    appState.headers = [...FROZEN_HEADERS];
+    appState.headers = [...getFrozenHeaders()];
     const newRow = {};
     appState.headers.forEach(h => {
       if (h === 'S.NO') {
